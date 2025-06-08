@@ -1,0 +1,40 @@
+{
+  "python.defaultInterpreterPath": "./venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["tests/"],
+  "python.linting.enabled": true,
+  "python.linting.ruffEnabled": true,
+  "python.formatting.provider": "none",
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true,
+      "source.fixAll.ruff": true
+    }
+  },
+  "files.associations": {
+    "*.md": "markdown"
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true,
+    "source.fixAll.ruff": true
+  },
+  "terminal.integrated.defaultProfile.osx": "bash",
+  "terminal.integrated.profiles.osx": {
+    "bash": {
+      "path": "/bin/bash",
+      "args": ["-l"]
+    }
+  },
+  "claude.autoLaunch": true,
+  "claude.workspaceContext": "refactor-mcp",
+  "claude.exploreFirst": true,
+  "claude.preferredWorkflow": "tdd",
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "extensions.ignoreRecommendations": false,
+  "python.analysis.typeCheckingMode": "strict"
+}
