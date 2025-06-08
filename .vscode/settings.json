@@ -10,8 +10,8 @@
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true,
-      "source.fixAll.ruff": true
+      "source.organizeImports": "explicit",
+      "source.fixAll.ruff": "explicit"
     }
   },
   "files.associations": {
@@ -19,8 +19,8 @@
   },
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": true,
-    "source.fixAll.ruff": true
+    "source.organizeImports": "explicit",
+    "source.fixAll.ruff": "explicit"
   },
   "terminal.integrated.defaultProfile.osx": "bash",
   "terminal.integrated.profiles.osx": {

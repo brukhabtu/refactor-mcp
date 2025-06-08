@@ -18,11 +18,10 @@ uv run pytest tests/ --tb=short
 ## Documentation Structure
 
 ### Project Design & Planning
-- **`Project Plan and Scope.MD`** - Overall project scope and objectives
-- **`Architecture.MD`** - System architecture and design decisions  
-- **`Interface Design.MD`** - API and interface specifications
-- **`Implementation Plan.MD`** - Development phases and implementation strategy
-- **`TESTING.md`** - Testing strategy and approach
+- **`plan/project-plan.md`** - Overall project scope and objectives
+- **`plan/architecture.md`** - System architecture and design decisions  
+- **`plan/interface-design.md`** - API and interface specifications
+- **`plan/implementation-plan.md`** - Development phases and implementation strategy
 
 ### Development Workflow
 - **`CLAUDE.md`** - Claude Code guidance and project overview

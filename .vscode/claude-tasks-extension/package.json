@@ -1,0 +1,71 @@
+{
+  "name": "claude-tasks-monitor",
+  "displayName": "Claude Tasks Monitor",
+  "description": "Monitor Claude background tasks in real-time",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "claudeTasksView",
+          "name": "Claude Tasks",
+          "when": "true"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeTasks.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeTasks.showConversation",
+        "title": "Show Conversation",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "claudeTasks.startTask",
+        "title": "Start New Task",
+        "icon": "$(add)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeTasks.refresh",
+          "when": "view == claudeTasksView",
+          "group": "navigation"
+        },
+        {
+          "command": "claudeTasks.startTask",
+          "when": "view == claudeTasksView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "claudeTasks.showConversation",
+          "when": "view == claudeTasksView && viewItem == task",
+          "group": "inline"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

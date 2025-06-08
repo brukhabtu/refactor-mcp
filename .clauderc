@@ -1,43 +1,9 @@
-# Claude Code configuration for refactor-mcp
+#!/bin/bash
 
-# Preferred tools in order of preference
-tools:
-  - read      # Always read before editing
-  - grep      # Search for patterns
-  - bash      # Run commands
-  - edit      # Make targeted changes
-  - write     # Create new files (sparingly)
+# Claude task management alias
+alias ct=".claude/ct"
 
-# Common commands (also available as VS Code tasks via Ctrl+Shift+P -> Tasks: Run Task)
-commands:
-  # See .vscode/tasks.json for full task definitions with proper error handling
-  # Use VS Code tasks for interactive development, these for quick reference
-  setup: "uv sync"
-  test: "uv run pytest tests/ -v"
-  test-quick: "uv run pytest tests/ --tb=short"
-  quality: "uv run ruff check . && uv run ruff format . && uv run mypy refactor_mcp/"
-  dev-cycle: "uv run pytest tests/ --tb=short && uv run ruff check . && uv run ruff format . && uv run mypy refactor_mcp/ && uv run pytest tests/ -v"
-  
-# Development patterns
-patterns:
-  # Always start development with failing tests
-  tdd: |
-    1. Read existing test files
-    2. Write new failing test
-    3. Implement minimal code to pass
-    4. Refactor and improve
-    
-  # Multi-agent coordination
-  worktree-setup: |
-    1. ./gw.sh feature-name
-    2. uv sync
-    3. Run initial tests
-    4. Begin development
-    
-# Code style reminders
-style:
-  - Use Pydantic models for data structures
-  - Prefer explicit error handling over silent failures
-  - Add type hints to all functions
-  - Use descriptive variable names (no single letters)
-  - Follow existing import patterns in the codebase
+# Project documentation quick access  
+alias docs="cat CLAUDE.md"
+alias arch="cat plan/architecture.md"
+alias plan="cat plan/project-plan.md"

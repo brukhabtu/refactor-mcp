@@ -8,7 +8,7 @@
       "group": "build",
       "presentation": {
         "echo": true,
-        "reveal": "always",
+        "reveal": "always", 
         "focus": false,
         "panel": "shared"
       },
@@ -28,7 +28,7 @@
       "problemMatcher": []
     },
     {
-      "label": "test-quick",
+      "label": "test-quick", 
       "type": "shell",
       "command": "uv run pytest tests/ --tb=short",
       "group": "test",
@@ -42,7 +42,7 @@
     },
     {
       "label": "lint",
-      "type": "shell",
+      "type": "shell", 
       "command": "uv run ruff check . && uv run ruff format .",
       "group": "build",
       "presentation": {
@@ -57,7 +57,7 @@
       "label": "typecheck",
       "type": "shell",
       "command": "uv run mypy refactor_mcp/",
-      "group": "build",
+      "group": "build", 
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -83,7 +83,7 @@
     {
       "label": "cli-help",
       "type": "shell",
-      "command": "uv run python -m refactor_mcp.cli --help",
+      "command": "uv run python -m refactor_mcp.cli --help", 
       "group": "build",
       "presentation": {
         "echo": true,
@@ -106,6 +106,21 @@
       },
       "problemMatcher": [],
       "dependsOrder": "sequence"
+    },
+    {
+      "label": "Claude Tasks Status",
+      "type": "shell",
+      "command": "node .vscode/claude-tasks-status.js",
+      "group": "build",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
     }
   ]
 }
