@@ -1,0 +1,6 @@
+Command: claude -p Fix the 10 failing tests using strict TDD:
+1. Read failing test details and understand model mismatches
+2. Update test fixtures to match current AnalyzeParams/RenameParams structure  
+3. Fix one test at a time, ensuring each passes before moving to next
+4. Verify all 128 tests pass with no warnings
+5. Run full test suite to confirm green state --output-format json --allowedTools Task,Bash,Glob,Grep,LS,Read,Edit,MultiEdit,Write,NotebookRead,NotebookEdit,TodoRead,TodoWrite

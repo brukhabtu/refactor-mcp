@@ -1,0 +1,7 @@
+Command: claude -p Add comprehensive integration tests using TDD:
+1. Write failing test for full analyze workflow (file -> engine -> rope -> results)
+2. Implement any missing glue code to pass
+3. Write failing test for rename workflow with backup
+4. Implement backup integration
+5. Write failing test for error handling (invalid files, etc.)
+6. Ensure robust error handling throughout --output-format json --allowedTools Task,Bash,Glob,Grep,LS,Read,Edit,MultiEdit,Write,NotebookRead,NotebookEdit,TodoRead,TodoWrite
