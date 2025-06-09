@@ -5,7 +5,8 @@ These mock providers simulate the behavior of real refactoring engines
 while providing controlled, predictable responses for testing.
 """
 
-from typing import Union
+from typing import Union, Dict, List, Any
+from datetime import datetime
 
 from refactor_mcp.models import (
     SymbolInfo,
@@ -22,6 +23,11 @@ from refactor_mcp.models import (
     ExtractParams,
     FindParams,
     ShowParams,
+)
+from refactor_mcp.providers.base import (
+    ProviderMetadata,
+    OperationCapability,
+    ProviderHealthStatus,
 )
 
 
@@ -113,6 +119,12 @@ class MockRopeProvider:
     def supports_language(self, language: str) -> bool:
         """Check if provider supports the given language."""
         return language.lower() in self.supported_languages
+
+    def get_capabilities(self, language: str) -> List[str]:
+        """Return list of supported operations for language"""
+        if not self.supports_language(language):
+            return []
+        return ["analyze", "rename", "extract", "find", "show"]
     
     def analyze_symbol(self, params: AnalyzeParams) -> Union[AnalysisResult, ErrorResponse]:
         """Analyze a symbol and return information."""
@@ -283,6 +295,101 @@ class MockRopeProvider:
             extractable_elements=elements
         )
 
+    # Enhanced protocol methods
+    def get_metadata(self) -> ProviderMetadata:
+        """Get provider metadata including name, version, and capabilities"""
+        return ProviderMetadata(
+            name="mock_rope_provider",
+            version="1.0.0",
+            description="Mock implementation of Rope-based refactoring provider for testing",
+            author="Test Suite",
+            supported_languages=self.supported_languages,
+            min_protocol_version="1.0.0",
+            max_protocol_version="1.0.0"
+        )
+
+    def get_detailed_capabilities(self, language: str) -> Dict[str, List[OperationCapability]]:
+        """Get detailed capability information organized by operation category"""
+        if not self.supports_language(language):
+            return {"analysis": [], "refactoring": [], "discovery": []}
+        
+        return {
+            "analysis": [
+                OperationCapability(
+                    name="analyze_symbol",
+                    support_level="full",
+                    description="Analyze symbol information and references",
+                    limitations=None
+                )
+            ],
+            "refactoring": [
+                OperationCapability(
+                    name="rename_symbol",
+                    support_level="full",
+                    description="Safe symbol renaming with conflict detection"
+                ),
+                OperationCapability(
+                    name="extract_element",
+                    support_level="partial",
+                    description="Extract code elements into new functions",
+                    limitations=["Limited to simple expressions", "May not handle complex dependencies"]
+                )
+            ],
+            "discovery": [
+                OperationCapability(
+                    name="find_symbols",
+                    support_level="full",
+                    description="Find symbols matching patterns"
+                ),
+                OperationCapability(
+                    name="show_function",
+                    support_level="experimental",
+                    description="Show extractable elements within functions",
+                    limitations=["Basic pattern matching only"]
+                )
+            ]
+        }
+
+    def health_check(self) -> ProviderHealthStatus:
+        """Perform health check and return status information"""
+        return ProviderHealthStatus(
+            status="healthy",
+            details={
+                "project_path": self.project_path,
+                "symbols_loaded": len(self._symbols),
+                "extractable_elements": sum(len(elements) for elements in self._extractable_elements.values()),
+                "memory_usage": "normal"
+            },
+            dependencies=["rope", "python-ast"],
+            last_check=datetime.now().isoformat()
+        )
+
+    def validate_configuration(self) -> Dict[str, Any]:
+        """Validate provider configuration and return validation results"""
+        return {
+            "valid": True,
+            "project_path_exists": True,
+            "dependencies_available": True,
+            "configuration_complete": True,
+            "warnings": [],
+            "errors": []
+        }
+
+    def get_priority(self, language: str) -> int:
+        """Get provider priority for language-specific operations (higher = better)"""
+        if language.lower() == "python":
+            return 90  # High priority for Python
+        elif language.lower() in ["javascript", "typescript"]:
+            return 20  # Low priority for JS/TS
+        else:
+            return 0   # No support
+
+    def is_compatible(self, protocol_version: str) -> bool:
+        """Check if provider is compatible with given protocol version"""
+        # Simple version compatibility - in real implementation would use semver
+        supported_versions = ["1.0.0", "1.0.1", "1.1.0"]
+        return protocol_version in supported_versions
+
 
 class MockTreeSitterProvider:
     """
@@ -298,6 +405,12 @@ class MockTreeSitterProvider:
     def supports_language(self, language: str) -> bool:
         """Check if provider supports the given language."""
         return language.lower() in self.supported_languages
+
+    def get_capabilities(self, language: str) -> List[str]:
+        """Return list of supported operations for language"""
+        if not self.supports_language(language):
+            return []
+        return ["analyze", "rename", "extract", "find", "show"]
     
     def analyze_symbol(self, params: AnalyzeParams) -> Union[AnalysisResult, ErrorResponse]:
         """Analyze symbol using Tree-sitter parsing."""
@@ -360,6 +473,43 @@ class MockTreeSitterProvider:
             extractable_elements=[]
         )
 
+    # Enhanced protocol methods (minimal implementation)
+    def get_metadata(self) -> ProviderMetadata:
+        """Get provider metadata"""
+        return ProviderMetadata(
+            name="mock_tree_sitter_provider",
+            version="0.9.0",
+            description="Mock Tree-sitter based multi-language provider",
+            author="Test Suite",
+            supported_languages=self.supported_languages
+        )
+
+    def get_detailed_capabilities(self, language: str) -> Dict[str, List[OperationCapability]]:
+        """Get detailed capabilities"""
+        if not self.supports_language(language):
+            return {"analysis": [], "refactoring": [], "discovery": []}
+        return {
+            "analysis": [OperationCapability(name="analyze_symbol", support_level="experimental")],
+            "refactoring": [OperationCapability(name="rename_symbol", support_level="experimental")],
+            "discovery": [OperationCapability(name="find_symbols", support_level="experimental")]
+        }
+
+    def health_check(self) -> ProviderHealthStatus:
+        """Health check"""
+        return ProviderHealthStatus(status="healthy", details={}, dependencies=["tree-sitter"])
+
+    def validate_configuration(self) -> Dict[str, Any]:
+        """Validate configuration"""
+        return {"valid": True}
+
+    def get_priority(self, language: str) -> int:
+        """Get priority"""
+        return 50 if self.supports_language(language) else 0
+
+    def is_compatible(self, protocol_version: str) -> bool:
+        """Check compatibility"""
+        return protocol_version == "1.0.0"
+
 
 class FailingProvider:
     """
@@ -376,6 +526,10 @@ class FailingProvider:
     def supports_language(self, language: str) -> bool:
         """Check language support."""
         return language.lower() in self.supported_languages
+
+    def get_capabilities(self, language: str) -> List[str]:
+        """Return empty capabilities (failing provider)"""
+        return []
     
     def analyze_symbol(self, params: AnalyzeParams) -> ErrorResponse:
         """Always return an error."""
@@ -439,6 +593,12 @@ class ConfigurableProvider:
     def supports_language(self, language: str) -> bool:
         """Check language support."""
         return language.lower() in self.supported_languages
+
+    def get_capabilities(self, language: str) -> List[str]:
+        """Return configurable capabilities"""
+        if not self.supports_language(language):
+            return []
+        return ["analyze", "rename", "extract", "find", "show"]
     
     def configure_analyze_response(self, symbol_name: str, response: Union[AnalysisResult, ErrorResponse]):
         """Configure response for analyze_symbol."""

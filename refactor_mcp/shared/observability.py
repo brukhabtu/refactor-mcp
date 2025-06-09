@@ -13,21 +13,21 @@ logger = get_logger(__name__)
 @dataclass
 class OperationMetrics:
     """Metrics for a refactoring operation."""
-    
+
     operation: str
     start_time: float
     end_time: Optional[float] = None
     success: bool = False
     error_message: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     @property
     def duration_ms(self) -> Optional[float]:
         """Duration in milliseconds."""
         if self.end_time is None:
             return None
         return (self.end_time - self.start_time) * 1000
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for logging/serialization."""
         return {
@@ -41,10 +41,10 @@ class OperationMetrics:
 
 class OperationTracker:
     """Tracks refactoring operations for observability."""
-    
+
     def __init__(self) -> None:
         self.operations: List[OperationMetrics] = []
-    
+
     @contextmanager
     def track_operation(
         self, operation: str, **metadata: Any
@@ -57,7 +57,7 @@ class OperationTracker:
         )
         self.operations.append(metrics)
         logger.debug(f"Started operation: {operation}", extra={"metadata": metadata})
-        
+
         try:
             yield metrics
             metrics.end_time = time.time()
@@ -67,7 +67,9 @@ class OperationTracker:
             metrics.end_time = time.time()
             metrics.success = False
             metrics.error_message = str(e)
-            logger.error(f"Failed operation: {operation} - {str(e)}", extra=metrics.to_dict())
+            logger.error(
+                f"Failed operation: {operation} - {str(e)}", extra=metrics.to_dict()
+            )
             raise
 
 
@@ -76,7 +78,9 @@ _tracker = OperationTracker()
 
 
 @contextmanager
-def track_operation(operation: str, **metadata: Any) -> Generator[OperationMetrics, None, None]:
+def track_operation(
+    operation: str, **metadata: Any
+) -> Generator[OperationMetrics, None, None]:
     """Track an operation using the global tracker."""
     with _tracker.track_operation(operation, **metadata) as metrics:
         yield metrics

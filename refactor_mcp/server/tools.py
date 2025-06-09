@@ -3,17 +3,34 @@
 from pydantic import Field, ValidationError
 from typing import Union
 
-from . import app, detect_language_from_symbol, detect_project_language, handle_operation_error
-from ..models.params import AnalyzeParams, FindParams, ShowParams, RenameParams, ExtractParams
+from . import (
+    app,
+    detect_language_from_symbol,
+    detect_project_language,
+    handle_operation_error,
+)
+from ..models.params import (
+    AnalyzeParams,
+    FindParams,
+    ShowParams,
+    RenameParams,
+    ExtractParams,
+)
 from ..models.responses import (
-    AnalysisResult, FindResult, ShowResult, RenameResult, ExtractResult
+    AnalysisResult,
+    FindResult,
+    ShowResult,
+    RenameResult,
+    ExtractResult,
 )
 from ..models.errors import ErrorResponse
 
 
 @app.tool()
 def refactor_analyze_symbol(
-    symbol_name: str = Field(description="Symbol to analyze (use qualified names for disambiguation)")
+    symbol_name: str = Field(
+        description="Symbol to analyze (use qualified names for disambiguation)"
+    ),
 ) -> Union[AnalysisResult, ErrorResponse]:
     """Analyze symbol for refactoring opportunities and get reference information."""
     try:
@@ -24,7 +41,7 @@ def refactor_analyze_symbol(
             return ErrorResponse(
                 error_type="provider_not_found",
                 message=f"No refactoring support for {language}",
-                suggestions=["Currently only Python is supported via Rope provider"]
+                suggestions=["Currently only Python is supported via Rope provider"],
             )
 
         params = AnalyzeParams(symbol_name=symbol_name)
@@ -34,7 +51,9 @@ def refactor_analyze_symbol(
         return ErrorResponse(
             error_type="validation_error",
             message=str(e),
-            suggestions=["Check symbol name format, use qualified names like 'module.function'"]
+            suggestions=[
+                "Check symbol name format, use qualified names like 'module.function'"
+            ],
         )
     except Exception as e:
         return handle_operation_error("Symbol analysis", e)
@@ -42,7 +61,9 @@ def refactor_analyze_symbol(
 
 @app.tool()
 def refactor_find_symbols(
-    pattern: str = Field(description="Symbol pattern to search for (supports wildcards)")
+    pattern: str = Field(
+        description="Symbol pattern to search for (supports wildcards)"
+    ),
 ) -> Union[FindResult, ErrorResponse]:
     """Find symbols matching a pattern across the project."""
     try:
@@ -53,7 +74,7 @@ def refactor_find_symbols(
         if not provider:
             return ErrorResponse(
                 error_type="provider_not_found",
-                message=f"No refactoring support for detected language: {language}"
+                message=f"No refactoring support for detected language: {language}",
             )
 
         params = FindParams(pattern=pattern)
@@ -63,13 +84,17 @@ def refactor_find_symbols(
         return ErrorResponse(
             error_type="search_error",
             message=str(e),
-            suggestions=["Check pattern syntax, use wildcards like '*.method' or 'module.*'"]
+            suggestions=[
+                "Check pattern syntax, use wildcards like '*.method' or 'module.*'"
+            ],
         )
 
 
 @app.tool()
 def refactor_show_function(
-    function_name: str = Field(description="Function to analyze for extractable elements")
+    function_name: str = Field(
+        description="Function to analyze for extractable elements"
+    ),
 ) -> Union[ShowResult, ErrorResponse]:
     """Show extractable elements (lambdas, expressions, blocks) within a function."""
     try:
@@ -79,7 +104,7 @@ def refactor_show_function(
         if not provider:
             return ErrorResponse(
                 error_type="provider_not_found",
-                message=f"No refactoring support for {language}"
+                message=f"No refactoring support for {language}",
             )
 
         params = ShowParams(function_name=function_name)
@@ -89,14 +114,20 @@ def refactor_show_function(
         return ErrorResponse(
             error_type="analysis_error",
             message=str(e),
-            suggestions=["Ensure function exists and use qualified names like 'module.function'"]
+            suggestions=[
+                "Ensure function exists and use qualified names like 'module.function'"
+            ],
         )
 
 
 @app.tool()
 def refactor_rename_symbol(
-    symbol_name: str = Field(description="Current symbol name (qualified name preferred)"),
-    new_name: str = Field(pattern=r'^[a-zA-Z_][a-zA-Z0-9_]*$', description="New symbol name")
+    symbol_name: str = Field(
+        description="Current symbol name (qualified name preferred)"
+    ),
+    new_name: str = Field(
+        pattern=r"^[a-zA-Z_][a-zA-Z0-9_]*$", description="New symbol name"
+    ),
 ) -> Union[RenameResult, ErrorResponse]:
     """Safely rename symbol across scope with conflict detection."""
     try:
@@ -106,7 +137,7 @@ def refactor_rename_symbol(
         if not provider:
             return ErrorResponse(
                 error_type="provider_not_found",
-                message=f"No refactoring support for {language}"
+                message=f"No refactoring support for {language}",
             )
 
         params = RenameParams(symbol_name=symbol_name, new_name=new_name)
@@ -116,7 +147,9 @@ def refactor_rename_symbol(
         return ErrorResponse(
             error_type="validation_error",
             message=str(e),
-            suggestions=["New name must be valid Python identifier (letters, numbers, underscores)"]
+            suggestions=[
+                "New name must be valid Python identifier (letters, numbers, underscores)"
+            ],
         )
     except Exception as e:
         return handle_operation_error("Symbol rename", e)
@@ -125,7 +158,9 @@ def refactor_rename_symbol(
 @app.tool()
 def refactor_extract_element(
     source: str = Field(description="Source function or element ID to extract from"),
-    new_name: str = Field(pattern=r'^[a-zA-Z_][a-zA-Z0-9_]*$', description="Name for extracted element")
+    new_name: str = Field(
+        pattern=r"^[a-zA-Z_][a-zA-Z0-9_]*$", description="Name for extracted element"
+    ),
 ) -> Union[ExtractResult, ErrorResponse]:
     """Extract code element (function, lambda, expression, or block) into new function."""
     try:
@@ -135,7 +170,7 @@ def refactor_extract_element(
         if not provider:
             return ErrorResponse(
                 error_type="provider_not_found",
-                message=f"No refactoring support for {language}"
+                message=f"No refactoring support for {language}",
             )
 
         params = ExtractParams(source=source, new_name=new_name)
@@ -145,7 +180,9 @@ def refactor_extract_element(
         return ErrorResponse(
             error_type="validation_error",
             message=str(e),
-            suggestions=["Check source format, use 'function.lambda_1' for anonymous elements"]
+            suggestions=[
+                "Check source format, use 'function.lambda_1' for anonymous elements"
+            ],
         )
     except Exception as e:
         return handle_operation_error("Element extraction", e)

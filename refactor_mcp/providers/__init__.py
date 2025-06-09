@@ -2,11 +2,16 @@ from typing import Protocol, List, Optional, Dict
 from pathlib import Path
 
 from ..models import (
-    AnalyzeParams, AnalysisResult,
-    RenameParams, RenameResult,
-    ExtractParams, ExtractResult,
-    FindParams, FindResult,
-    ShowParams, ShowResult
+    AnalyzeParams,
+    AnalysisResult,
+    RenameParams,
+    RenameResult,
+    ExtractParams,
+    ExtractResult,
+    FindParams,
+    FindResult,
+    ShowParams,
+    ShowResult,
 )
 
 
@@ -71,20 +76,20 @@ def detect_language(file_path: str) -> str:
     """Detect programming language from file extension"""
     suffix = Path(file_path).suffix.lower()
     language_map = {
-        '.py': 'python',
-        '.js': 'javascript', 
-        '.ts': 'typescript',
-        '.rs': 'rust',
-        '.ex': 'elixir',
-        '.go': 'go'
+        ".py": "python",
+        ".js": "javascript",
+        ".ts": "typescript",
+        ".rs": "rust",
+        ".ex": "elixir",
+        ".go": "go",
     }
-    return language_map.get(suffix, 'unknown')
+    return language_map.get(suffix, "unknown")
 
 
 def find_project_root(start_path: str) -> str:
     """Find project root by looking for markers"""
     current = Path(start_path).absolute()
-    markers = ['.git', 'pyproject.toml', 'setup.py', 'Cargo.toml', 'package.json']
+    markers = [".git", "pyproject.toml", "setup.py", "Cargo.toml", "package.json"]
 
     while current != current.parent:
         if any((current / marker).exists() for marker in markers):

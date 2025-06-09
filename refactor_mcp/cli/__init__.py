@@ -5,23 +5,29 @@ from pathlib import Path
 from typing import Optional
 
 from ..engine import engine
-from ..models.params import AnalyzeParams, FindParams, RenameParams, ExtractParams, ShowParams
+from ..models.params import (
+    AnalyzeParams,
+    FindParams,
+    RenameParams,
+    ExtractParams,
+    ShowParams,
+)
 from ..models.errors import RefactoringError
 
 # Register Rope provider automatically
 try:
     from ..providers.rope.rope import RopeProvider
+
     rope_provider = RopeProvider()
     engine.register_provider(rope_provider)
 except ImportError:
     pass  # Rope provider not available
 
 
-
 app = typer.Typer(
     name="refactor-mcp",
     help="AST refactoring engine for LLM consumption via MCP",
-    no_args_is_help=True
+    no_args_is_help=True,
 )
 
 
@@ -31,18 +37,20 @@ def server(
     host: str = typer.Option("localhost", "--host", help="Server host address"),
     port: int = typer.Option(8000, "--port", help="Server port number"),
     log_level: str = typer.Option("INFO", "--log-level", help="Logging level"),
-    log_file: Optional[Path] = typer.Option(None, "--log-file", help="Optional log file path")
+    log_file: Optional[Path] = typer.Option(
+        None, "--log-file", help="Optional log file path"
+    ),
 ):
     """Start the MCP server for AI tool consumption."""
     from ..server.main import run_server
-    
+
     try:
         run_server(
             transport=transport,
             host=host,
             port=port,
             log_level=log_level,
-            log_file=log_file
+            log_file=log_file,
         )
     except KeyboardInterrupt:
         typer.echo("Server stopped by user")
@@ -55,13 +63,13 @@ def server(
 @app.command()
 def analyze(
     symbol: str = typer.Argument(help="Symbol to analyze"),
-    file: str = typer.Option(..., "--file", help="File containing the symbol")
+    file: str = typer.Option(..., "--file", help="File containing the symbol"),
 ):
     """Analyze a symbol to get information about it."""
     try:
         params = AnalyzeParams(symbol_name=symbol, file_path=file)
         result = engine.analyze_symbol(params)
-        
+
         if result.success and result.symbol_info:
             info = result.symbol_info
             typer.echo(f"Symbol: {info.name}")
@@ -70,11 +78,16 @@ def analyze(
             typer.echo(f"Definition: {info.definition_location}")
             typer.echo(f"Scope: {info.scope}")
             if result.references:
-                typer.echo(f"References: {result.reference_count} in {len(result.references)} files")
+                typer.echo(
+                    f"References: {result.reference_count} in {len(result.references)} files"
+                )
         else:
-            typer.echo(f"Failed to analyze symbol: {result.message or 'Unknown error'}", err=True)
+            typer.echo(
+                f"Failed to analyze symbol: {result.message or 'Unknown error'}",
+                err=True,
+            )
             raise typer.Exit(1)
-            
+
     except RefactoringError as e:
         typer.echo(f"Error: {e.message}", err=True)
         raise typer.Exit(1)
@@ -86,21 +99,25 @@ def analyze(
 @app.command()
 def find(
     pattern: str = typer.Argument(help="Pattern to search for"),
-    file: str = typer.Option("", "--file", help="File to search in (optional)")
+    file: str = typer.Option("", "--file", help="File to search in (optional)"),
 ):
     """Find symbols matching a pattern."""
     try:
         params = FindParams(pattern=pattern, file_path=file)
         result = engine.find_symbols(params)
-        
+
         if result.success:
             typer.echo(f"Found {result.total_count} matches for '{pattern}':")
             for match in result.matches:
-                typer.echo(f"  - {match.qualified_name} ({match.type}) at {match.definition_location}")
+                typer.echo(
+                    f"  - {match.qualified_name} ({match.type}) at {match.definition_location}"
+                )
         else:
-            typer.echo(f"Failed to find symbols: {result.message or 'Unknown error'}", err=True)
+            typer.echo(
+                f"Failed to find symbols: {result.message or 'Unknown error'}", err=True
+            )
             raise typer.Exit(1)
-            
+
     except RefactoringError as e:
         typer.echo(f"Error: {e.message}", err=True)
         raise typer.Exit(1)
@@ -113,25 +130,30 @@ def find(
 def rename(
     old_name: str = typer.Argument(help="Current symbol name"),
     new_name: str = typer.Argument(help="New symbol name"),
-    file: str = typer.Option(..., "--file", help="File containing the symbol")
+    file: str = typer.Option(..., "--file", help="File containing the symbol"),
 ):
     """Rename a symbol safely across its scope."""
     try:
         params = RenameParams(symbol_name=old_name, new_name=new_name, file_path=file)
         result = engine.rename_symbol(params)
-        
+
         if result.success:
             typer.echo(f"Successfully renamed '{old_name}' to '{new_name}'")
             typer.echo(f"Qualified name: {result.qualified_name}")
-            typer.echo(f"Updated {result.references_updated} references in {len(result.files_modified)} files")
+            typer.echo(
+                f"Updated {result.references_updated} references in {len(result.files_modified)} files"
+            )
             if result.files_modified:
                 typer.echo("Modified files:")
                 for file_path in result.files_modified:
                     typer.echo(f"  - {file_path}")
         else:
-            typer.echo(f"Failed to rename symbol: {result.message or 'Unknown error'}", err=True)
+            typer.echo(
+                f"Failed to rename symbol: {result.message or 'Unknown error'}",
+                err=True,
+            )
             raise typer.Exit(1)
-            
+
     except RefactoringError as e:
         typer.echo(f"Error: {e.message}", err=True)
         raise typer.Exit(1)
@@ -142,15 +164,17 @@ def rename(
 
 @app.command()
 def extract(
-    source: str = typer.Argument(help="Source element to extract (qualified name or element ID)"),
+    source: str = typer.Argument(
+        help="Source element to extract (qualified name or element ID)"
+    ),
     new_name: str = typer.Argument(help="Name for extracted function"),
-    file: str = typer.Option(..., "--file", help="File containing the element")
+    file: str = typer.Option(..., "--file", help="File containing the element"),
 ):
     """Extract code element into a new function."""
     try:
         params = ExtractParams(source=source, new_name=new_name, file_path=file)
         result = engine.extract_element(params)
-        
+
         if result.success:
             typer.echo(f"Successfully extracted '{source}' as '{new_name}'")
             if result.extracted_code:
@@ -162,9 +186,12 @@ def extract(
                 for file_path in result.files_modified:
                     typer.echo(f"  - {file_path}")
         else:
-            typer.echo(f"Failed to extract element: {result.message or 'Unknown error'}", err=True)
+            typer.echo(
+                f"Failed to extract element: {result.message or 'Unknown error'}",
+                err=True,
+            )
             raise typer.Exit(1)
-            
+
     except RefactoringError as e:
         typer.echo(f"Error: {e.message}", err=True)
         raise typer.Exit(1)
@@ -175,18 +202,22 @@ def extract(
 
 @app.command()
 def show(
-    function_name: str = typer.Argument(help="Function to analyze for extractable elements"),
-    file: str = typer.Option(..., "--file", help="File containing the function")
+    function_name: str = typer.Argument(
+        help="Function to analyze for extractable elements"
+    ),
+    file: str = typer.Option(..., "--file", help="File containing the function"),
 ):
     """Show extractable elements within a function."""
     try:
         params = ShowParams(function_name=function_name, file_path=file)
         result = engine.show_function(params)
-        
+
         if result.success:
             typer.echo(f"Function: {result.function_name}")
             if result.extractable_elements:
-                typer.echo(f"Found {len(result.extractable_elements)} extractable elements:")
+                typer.echo(
+                    f"Found {len(result.extractable_elements)} extractable elements:"
+                )
                 for element in result.extractable_elements:
                     typer.echo(f"  - {element.id} ({element.type})")
                     typer.echo(f"    Code: {element.code[:50]}...")
@@ -195,9 +226,12 @@ def show(
             else:
                 typer.echo("No extractable elements found.")
         else:
-            typer.echo(f"Failed to analyze function: {result.message or 'Unknown error'}", err=True)
+            typer.echo(
+                f"Failed to analyze function: {result.message or 'Unknown error'}",
+                err=True,
+            )
             raise typer.Exit(1)
-            
+
     except RefactoringError as e:
         typer.echo(f"Error: {e.message}", err=True)
         raise typer.Exit(1)

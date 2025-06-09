@@ -6,6 +6,7 @@ from typing import List, Optional
 
 class SymbolInfo(BaseModel):
     """Information about a symbol."""
+
     name: str
     qualified_name: str = Field(description="Fully qualified symbol name")
     type: str = Field(description="Symbol type (function, class, variable, etc.)")
@@ -16,6 +17,7 @@ class SymbolInfo(BaseModel):
 
 class ElementInfo(BaseModel):
     """Information about an extractable element."""
+
     id: str = Field(description="Auto-generated element ID")
     type: str = Field(description="Element type (lambda, expression, block)")
     code: str = Field(description="Element source code")
@@ -25,6 +27,7 @@ class ElementInfo(BaseModel):
 
 class ShowResult(BaseModel):
     """Result of show operation."""
+
     success: bool
     function_name: Optional[str] = None
     extractable_elements: List[ElementInfo] = Field(default_factory=list)
@@ -34,6 +37,7 @@ class ShowResult(BaseModel):
 
 class FindResult(BaseModel):
     """Result of find operation."""
+
     success: bool
     pattern: Optional[str] = None
     matches: List[SymbolInfo] = Field(default_factory=list)
@@ -44,10 +48,13 @@ class FindResult(BaseModel):
 
 class RenameResult(BaseModel):
     """Result of rename operation."""
+
     success: bool
     old_name: Optional[str] = None
     new_name: Optional[str] = None
-    qualified_name: Optional[str] = Field(default=None, description="Fully qualified symbol that was renamed")
+    qualified_name: Optional[str] = Field(
+        default=None, description="Fully qualified symbol that was renamed"
+    )
     files_modified: List[str] = Field(default_factory=list)
     references_updated: int = Field(default=0)
     conflicts: List[str] = Field(default_factory=list)
@@ -58,6 +65,7 @@ class RenameResult(BaseModel):
 
 class ExtractResult(BaseModel):
     """Result of extract operation."""
+
     success: bool
     source: Optional[str] = Field(default=None, description="What was extracted from")
     new_function_name: Optional[str] = None
@@ -72,9 +80,12 @@ class ExtractResult(BaseModel):
 
 class AnalysisResult(BaseModel):
     """Result of analysis operation."""
+
     success: bool
     symbol_info: Optional[SymbolInfo] = None
-    references: List[str] = Field(default_factory=list, description="List of files containing references")
+    references: List[str] = Field(
+        default_factory=list, description="List of files containing references"
+    )
     reference_count: int = Field(default=0)
     refactoring_suggestions: List[str] = Field(default_factory=list)
     error_type: Optional[str] = None
@@ -83,6 +94,7 @@ class AnalysisResult(BaseModel):
 
 class BackupResult(BaseModel):
     """Result of backup operation."""
+
     success: bool
     backup_id: str
     files_backed_up: List[str] = Field(default_factory=list)

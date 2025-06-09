@@ -35,7 +35,7 @@ class RefactoringEngine:
         for provider in self.providers:
             # This would need to be implemented by providers
             # For now, we'll assume Python support
-            if hasattr(provider, '_supported_languages'):
+            if hasattr(provider, "_supported_languages"):
                 languages.update(provider._supported_languages)
         return list(languages)
 
@@ -44,20 +44,20 @@ def detect_language(file_path: str) -> str:
     """Detect programming language from file extension."""
     suffix = Path(file_path).suffix.lower()
     language_map = {
-        '.py': 'python',
-        '.js': 'javascript', 
-        '.ts': 'typescript',
-        '.rs': 'rust',
-        '.ex': 'elixir',
-        '.go': 'go'
+        ".py": "python",
+        ".js": "javascript",
+        ".ts": "typescript",
+        ".rs": "rust",
+        ".ex": "elixir",
+        ".go": "go",
     }
-    return language_map.get(suffix, 'unknown')
+    return language_map.get(suffix, "unknown")
 
 
 def find_project_root(start_path: str) -> str:
     """Find project root by looking for markers."""
     current = Path(start_path).absolute()
-    markers = ['.git', 'pyproject.toml', 'setup.py', 'Cargo.toml', 'package.json']
+    markers = [".git", "pyproject.toml", "setup.py", "Cargo.toml", "package.json"]
 
     while current != current.parent:
         if any((current / marker).exists() for marker in markers):
