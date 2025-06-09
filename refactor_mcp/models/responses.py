@@ -26,40 +26,48 @@ class ElementInfo(BaseModel):
 class ShowResult(BaseModel):
     """Result of show operation."""
     success: bool
-    function_name: str
+    function_name: Optional[str] = None
     extractable_elements: List[ElementInfo] = Field(default_factory=list)
+    error_type: Optional[str] = None
+    message: Optional[str] = None
 
 
 class FindResult(BaseModel):
     """Result of find operation."""
     success: bool
-    pattern: str
+    pattern: Optional[str] = None
     matches: List[SymbolInfo] = Field(default_factory=list)
     total_count: int = Field(default=0)
+    error_type: Optional[str] = None
+    message: Optional[str] = None
 
 
 class RenameResult(BaseModel):
     """Result of rename operation."""
     success: bool
-    old_name: str
-    new_name: str
-    qualified_name: str = Field(description="Fully qualified symbol that was renamed")
+    old_name: Optional[str] = None
+    new_name: Optional[str] = None
+    qualified_name: Optional[str] = Field(default=None, description="Fully qualified symbol that was renamed")
     files_modified: List[str] = Field(default_factory=list)
     references_updated: int = Field(default=0)
     conflicts: List[str] = Field(default_factory=list)
     backup_id: Optional[str] = None
+    error_type: Optional[str] = None
+    message: Optional[str] = None
 
 
 class ExtractResult(BaseModel):
     """Result of extract operation."""
     success: bool
-    source: str = Field(description="What was extracted from")
-    new_function_name: str
-    extracted_code: str
+    source: Optional[str] = Field(default=None, description="What was extracted from")
+    new_function_name: Optional[str] = None
+    extracted_code: Optional[str] = None
     parameters: List[str] = Field(default_factory=list)
     return_type: Optional[str] = None
     files_modified: List[str] = Field(default_factory=list)
     backup_id: Optional[str] = None
+    error_type: Optional[str] = None
+    message: Optional[str] = None
 
 
 class AnalysisResult(BaseModel):
@@ -69,6 +77,8 @@ class AnalysisResult(BaseModel):
     references: List[str] = Field(default_factory=list, description="List of files containing references")
     reference_count: int = Field(default=0)
     refactoring_suggestions: List[str] = Field(default_factory=list)
+    error_type: Optional[str] = None
+    message: Optional[str] = None
 
 
 class BackupResult(BaseModel):
