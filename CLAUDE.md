@@ -120,7 +120,16 @@ uv run pytest tests/ --tb=short
 # Code quality (lint + format + typecheck)
 uv run ruff check . && uv run ruff format . && uv run mypy refactor_mcp/
 
-# Full development cycle
+# TDD development cycle (Red→Green→Refactor)
+uv run pytest tests/test_specific.py::test_new_behavior -v && \
+echo "✅ RED: Test fails as expected" && \
+# [Implement minimal code] && \
+uv run pytest tests/test_specific.py::test_new_behavior -v && \
+echo "✅ GREEN: Test passes" && \
+uv run pytest tests/ --tb=short && uv run ruff check . && uv run ruff format . && uv run mypy refactor_mcp/ && \
+echo "✅ REFACTOR: All tests pass, code is clean"
+
+# Full development cycle (after TDD iterations)
 uv run pytest tests/ --tb=short && uv run ruff check . && uv run ruff format . && uv run mypy refactor_mcp/ && uv run pytest tests/ -v
 ```
 
@@ -272,9 +281,96 @@ This project includes a Claude task management system for running background Cla
 - **Non-blocking execution**: Tasks run in background, return immediately
 - **Conversation history**: All requests and responses are tracked
 - **Session resumption**: Continue tasks with session IDs automatically
+- **Collaborative management**: Both humans and AI can review, continue, and remove tasks
+- **Status tracking**: Clear status indicators (awaiting_response vs response_received)
+- **Git worktree support**: Isolated development environments for parallel work
 - **Error handling**: Gracefully handles failed commands and non-JSON output
 - **Path isolation**: Tasks run in their correct project directories
-- **Cleanup management**: Remove completed tasks to keep workspace clean
+
+### Collaborative Task Management
+
+**Task Lifecycle**:
+1. **Start**: Either human or AI creates task with `.claude/ct start <name> "<message>" --worktree`
+2. **Monitor**: Check status with `.claude/ct list` (awaiting_response → response_received)
+3. **Review**: Either human or AI reviews with `.claude/ct conversation <name>`
+4. **Decide**: Continue work (`.claude/ct continue <name> "<message>"`) or remove when satisfied (`.claude/ct remove <name>`)
+
+**AI Task Management**: During interactive sessions, Claude Code can autonomously:
+- Start background tasks for parallel TDD development
+- Monitor task completion status and TDD compliance
+- Review conversation outputs for Red→Green→Refactor patterns
+- Continue tasks that need TDD refinement or missing tests
+- Remove tasks when work is satisfactory and tests pass
+- Orchestrate complex multi-task workflows with test coverage
+- Enforce TDD discipline across all background tasks
+
+### TDD-First Development Workflow
+
+**Core TDD Loop** (Red → Green → Refactor):
+```bash
+# 1. Write failing test first
+uv run pytest tests/test_new_feature.py::test_specific_behavior -v
+
+# 2. Implement minimal code to make test pass
+# 3. Run test to verify green
+uv run pytest tests/test_new_feature.py::test_specific_behavior -v
+
+# 4. Refactor while keeping tests green
+uv run pytest tests/ --tb=short
+
+# 5. Repeat for next behavior
+```
+
+**TDD with Background Tasks**:
+```bash
+# Start TDD task with explicit test-first instruction
+.claude/ct start feature-tdd "Implement user authentication using strict TDD: 
+1. Write failing test for login validation
+2. Implement minimal code to pass
+3. Write failing test for password hashing  
+4. Implement minimal code to pass
+5. Refactor and ensure all tests pass" --worktree
+
+# Monitor and ensure TDD discipline
+.claude/ct conversation feature-tdd
+# Verify each commit follows Red→Green→Refactor pattern
+```
+
+**TDD Quality Checks**:
+- Every task must include test creation BEFORE implementation
+- No implementation without a failing test first
+- All tests must pass before task completion
+- Refactoring steps must maintain green tests
+
+### Git Workflow with Worktrees
+
+**Recommended Pattern for Feature Development**:
+```bash
+# 1. Start on feature branch (already created)
+git checkout feature/my-feature
+
+# 2. Create isolated worktree tasks for sub-components (TDD-focused)
+.claude/ct start task1 "TDD implementation of component A: tests first, minimal implementation" --worktree
+.claude/ct start task2 "TDD implementation of component B: tests first, minimal implementation" --worktree
+
+# 3. Review TDD compliance and merge completed tasks
+.claude/ct conversation task1  # Verify Red→Green→Refactor pattern
+.claude/ct merge task1
+.claude/ct remove task1
+
+# 4. Run full test suite before PR
+uv run pytest tests/ -v
+
+# 5. Feature branch ready for main branch PR
+```
+
+**Benefits**:
+- **Test-driven discipline**: Every feature starts with tests
+- **Parallel TDD development**: Multiple components developed simultaneously with test coverage
+- **Isolation**: Each task has its own git branch and working directory
+- **Safe experimentation**: Worktree failures don't affect main development
+- **Clean history**: Each task creates focused commits that follow TDD pattern
+- **Quality assurance**: Tests ensure functionality before merge
 
 ### Implementation Notes
 

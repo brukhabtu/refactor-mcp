@@ -14,7 +14,7 @@ CLAUDE_TASKS_DIR = Path(".claude/claude-sessions")  # Keep dir name for now to a
 TASKS_DIR = CLAUDE_TASKS_DIR / "tasks"
 
 # Safe default tools - disable for now to get basic functionality working
-DEFAULT_ALLOWED_TOOLS = None  # "Read,Edit,MultiEdit,Write,Glob,Grep,LS,Task,Bash,TodoRead,TodoWrite"
+DEFAULT_ALLOWED_TOOLS = None  # "Read,Edit,MultiEdit,Write,Glob,Grep,LS,Task,Bash,TodoRead,TodoWrite,Tasks"
 
 @dataclass
 class TaskInfo:
@@ -247,9 +247,17 @@ class TaskManager:
             request_count = sum(1 for msg in messages if msg.get('type') == 'request')
             response_count = sum(1 for msg in messages if msg.get('type') == 'result')
             
+            # Determine status based on request/response balance
+            if response_count == 0:
+                status = "awaiting_response"
+            elif request_count == response_count:
+                status = "response_received"
+            else:
+                status = "awaiting_response"
+            
             tasks.append(TaskInfo(
                 name=name,
-                status="active" if session_id else "starting",
+                status=status,
                 session_id=session_id,
                 requests=request_count,
                 responses=response_count
@@ -332,7 +340,9 @@ def main() -> int:
         print("Commands:")
         print("  start <name> <message> [dir]  Start a new Claude background task")
         print("  continue <name> <message>     Continue an existing Claude task")
-        print("  list                          List all Claude tasks")
+        print("  list                          List all Claude tasks with status:")
+        print("                                - awaiting_response: waiting for Claude to respond")
+        print("                                - response_received: got response, ready for review")
         print("  conversation <name>           Show clean task conversation")
         print("  show <name>                   Show detailed Claude task info")
         print("  output <name>                 Show Claude task output with metadata")
