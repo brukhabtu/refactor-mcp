@@ -17,22 +17,22 @@ class Range(BaseModel):
 
 class AnalyzeParams(BaseModel):
     """Parameters for symbol analysis operation."""
-    symbol: str = Field(description="Symbol to analyze (qualified name preferred)")
-    file_path: str = Field(description="Path to file containing the symbol")
+    symbol_name: str = Field(description="Symbol to analyze (qualified name preferred)")
+    file_path: str = Field(description="Path to file containing the symbol", default="")
 
 
 class RenameParams(BaseModel):
     """Parameters for symbol renaming operation."""
-    old_name: str = Field(description="Current symbol name (qualified name preferred)")
+    symbol_name: str = Field(description="Current symbol name (qualified name preferred)")
     new_name: str = Field(pattern=r'^[a-zA-Z_][a-zA-Z0-9_]*$', description="New symbol name")
-    file_path: str = Field(description="Path to file containing the symbol")
+    file_path: str = Field(description="Path to file containing the symbol", default="")
 
 
 class ExtractParams(BaseModel):
     """Parameters for extraction operation."""
-    element_type: str = Field(description="Type of element to extract")
-    element_id: str = Field(description="ID of element to extract")
-    file_path: str = Field(description="Path to file containing the element")
+    source: str = Field(description="Source element to extract (qualified name or element ID)")
+    new_name: str = Field(pattern=r'^[a-zA-Z_][a-zA-Z0-9_]*$', description="Name for extracted function/method")
+    file_path: str = Field(description="Path to file containing the element", default="")
 
 
 class FindParams(BaseModel):
@@ -44,4 +44,4 @@ class FindParams(BaseModel):
 class ShowParams(BaseModel):
     """Parameters for showing extractable elements."""
     function_name: str = Field(description="Function to analyze for extractable elements")
-    file_path: str = Field(description="Path to file containing the function")
+    file_path: str = Field(description="Path to file containing the function", default="")

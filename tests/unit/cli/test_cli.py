@@ -112,7 +112,7 @@ class TestCliEngineIntegration:
         # Verify engine was called
         mock_engine.analyze_symbol.assert_called_once()
         call_args = mock_engine.analyze_symbol.call_args[0][0]
-        assert call_args.symbol == "test_function"
+        assert call_args.symbol_name == "test_function"
         assert call_args.file_path == temp_python_file
     
     @patch('refactor_mcp.cli.engine')
@@ -162,7 +162,7 @@ class TestCliEngineIntegration:
         # Verify engine was called
         mock_engine.rename_symbol.assert_called_once()
         call_args = mock_engine.rename_symbol.call_args[0][0]
-        assert call_args.old_name == "test_function"
+        assert call_args.symbol_name == "test_function"
         assert call_args.new_name == "renamed_function"
         assert call_args.file_path == temp_python_file
 
@@ -178,8 +178,8 @@ class SimpleTestProvider:
     
     def analyze_symbol(self, params):
         symbol_info = SymbolInfo(
-            name=params.symbol,
-            qualified_name=f"module.{params.symbol}",
+            name=params.symbol_name,
+            qualified_name=f"module.{params.symbol_name}",
             type="function",
             definition_location=f"{params.file_path}:1",
             scope="module"
@@ -209,9 +209,9 @@ class SimpleTestProvider:
     def rename_symbol(self, params):
         return RenameResult(
             success=True,
-            old_name=params.old_name,
+            old_name=params.symbol_name,
             new_name=params.new_name,
-            qualified_name=f"module.{params.old_name}",
+            qualified_name=f"module.{params.symbol_name}",
             files_modified=[params.file_path],
             references_updated=1
         )
@@ -228,8 +228,8 @@ class SimpleTestProvider:
         from refactor_mcp.models.responses import ExtractResult
         return ExtractResult(
             success=True,
-            source=f"{params.element_type}.{params.element_id}",
-            new_function_name="extracted_function",
+            source=params.source,
+            new_function_name=params.new_name,
             extracted_code="def extracted_function(): pass",
             files_modified=[params.file_path]
         )

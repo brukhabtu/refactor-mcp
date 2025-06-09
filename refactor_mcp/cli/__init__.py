@@ -51,7 +51,7 @@ def analyze(
 ):
     """Analyze a symbol to get information about it."""
     try:
-        params = AnalyzeParams(symbol=symbol, file_path=file)
+        params = AnalyzeParams(symbol_name=symbol, file_path=file)
         result = engine.analyze_symbol(params)
         
         if result.success and result.symbol_info:
@@ -109,7 +109,7 @@ def rename(
 ):
     """Rename a symbol safely across its scope."""
     try:
-        params = RenameParams(old_name=old_name, new_name=new_name, file_path=file)
+        params = RenameParams(symbol_name=old_name, new_name=new_name, file_path=file)
         result = engine.rename_symbol(params)
         
         if result.success:

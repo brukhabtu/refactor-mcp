@@ -193,6 +193,34 @@ class RopeProvider:
         
         return suggestions
 
+    def _create_analysis_result(self, symbol_info: Any, params: AnalyzeParams, references: list, suggestions: list) -> AnalysisResult:
+        """Pure function to create analysis result from symbol info and references."""
+        reference_files = [ref.resource.path for ref in references] if references else []
+        
+        return AnalysisResult(
+            success=True,
+            symbol_info=SymbolInfo(
+                name=symbol_info.name,
+                qualified_name=params.symbol_name,
+                type=symbol_info.type,
+                definition_location=f"{symbol_info.resource.path}:{symbol_info.line}",
+                scope=symbol_info.scope,
+                docstring=symbol_info.docstring
+            ),
+            references=reference_files,
+            reference_count=len(references),
+            refactoring_suggestions=suggestions
+        )
+    
+    def _find_symbol_references(self, project: Any, symbol_info: Any) -> list:
+        """Pure function to find symbol references with error handling."""
+        try:
+            references = find_occurrences(project, symbol_info.resource, symbol_info.offset)
+            return references
+        except Exception as e:
+            logger.warning(f"Could not find references: {e}")
+            return []
+
     def analyze_symbol(self, params: AnalyzeParams) -> AnalysisResult:
         """Analyze Python symbol using Rope"""
         with track_operation("analyze_symbol", symbol=params.symbol_name):
@@ -208,34 +236,10 @@ class RopeProvider:
                         message=f"Symbol '{params.symbol_name}' not found"
                     )
                 
-                try:
-                    references = find_occurrences(
-                        project, 
-                        symbol_info.resource, 
-                        symbol_info.offset
-                    )
-                    reference_files = [ref.resource.path for ref in references]
-                except Exception as e:
-                    logger.warning(f"Could not find references: {e}")
-                    references = []
-                    reference_files = []
-                
+                references = self._find_symbol_references(project, symbol_info)
                 suggestions = self._analyze_refactoring_opportunities(project, symbol_info)
                 
-                return AnalysisResult(
-                    success=True,
-                    symbol_info=SymbolInfo(
-                        name=symbol_info.name,
-                        qualified_name=params.symbol_name,
-                        type=symbol_info.type,
-                        definition_location=f"{symbol_info.resource.path}:{symbol_info.line}",
-                        scope=symbol_info.scope,
-                        docstring=symbol_info.docstring
-                    ),
-                    references=reference_files,
-                    reference_count=len(references),
-                    refactoring_suggestions=suggestions
-                )
+                return self._create_analysis_result(symbol_info, params, references, suggestions)
                 
             except Exception as e:
                 logger.error(f"Analysis error: {e}")
@@ -405,10 +409,15 @@ class RopeProvider:
                 self.module = module
                 self.element = element
         
-        if '.' in source:
-            parts = source.split('.')
-            if len(parts) >= 2:
-                return SourceInfo('.'.join(parts[:-1]), parts[-1])
+        if not source or '.' not in source:
+            return None
+            
+        parts = source.split('.')
+        # Filter out empty parts (handles cases like "...")
+        parts = [part for part in parts if part]
+        
+        if len(parts) >= 2:
+            return SourceInfo('.'.join(parts[:-1]), parts[-1])
         
         return None
 
