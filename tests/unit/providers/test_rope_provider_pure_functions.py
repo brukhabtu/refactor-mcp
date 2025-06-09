@@ -1,10 +1,9 @@
 """Unit tests for RopeProvider - focused on pure functions and valuable logic."""
 
-import pytest
 from unittest.mock import Mock
 
 from refactor_mcp.providers.rope.rope import RopeProvider
-from refactor_mcp.models import AnalyzeParams, SymbolInfo
+from refactor_mcp.models import AnalyzeParams
 
 
 class TestRopeProviderPureFunctions:
@@ -106,18 +105,21 @@ class TestRopeProviderPureFunctions:
         result = self.provider._parse_extraction_source("module.function")
         assert result is not None
         assert result.module == "module"
-        assert result.element == "function"
+        assert result.function == "function"
+        assert result.element is None
         
-        # Complex case
-        result = self.provider._parse_extraction_source("package.submodule.class.method")
+        # Complex case (3 parts)
+        result = self.provider._parse_extraction_source("package.class.method")
         assert result is not None
-        assert result.module == "package.submodule.class"
+        assert result.module == "package"
+        assert result.function == "class"
         assert result.element == "method"
         
         # Nested case
-        result = self.provider._parse_extraction_source("auth.utils.login.lambda_1")
+        result = self.provider._parse_extraction_source("auth.utils.lambda_1")
         assert result is not None
-        assert result.module == "auth.utils.login"
+        assert result.module == "auth"
+        assert result.function == "utils"
         assert result.element == "lambda_1"
     
     def test_parse_extraction_source_invalid_cases(self):

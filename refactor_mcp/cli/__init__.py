@@ -4,8 +4,13 @@ import typer
 from pathlib import Path
 from typing import Optional
 
-from ..engine import engine
-from ..models.params import AnalyzeParams, FindParams, RenameParams
+from ..engine import RefactoringEngine
+from ..providers.rope.rope import RopeProvider
+
+# Create and configure engine instance
+engine = RefactoringEngine()
+engine.register_provider(RopeProvider())
+from ..models.params import AnalyzeParams, FindParams, RenameParams, ShowParams
 from ..models.errors import RefactoringError
 
 
@@ -122,6 +127,39 @@ def rename(
                     typer.echo(f"  - {file_path}")
         else:
             typer.echo(f"Failed to rename symbol: {result.message or 'Unknown error'}", err=True)
+            raise typer.Exit(1)
+            
+    except RefactoringError as e:
+        typer.echo(f"Error: {e.message}", err=True)
+        raise typer.Exit(1)
+    except Exception as e:
+        typer.echo(f"Unexpected error: {e}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def show(
+    function: str = typer.Argument(help="Function name to analyze"),
+    file: str = typer.Option(..., "--file", help="File containing the function")
+):
+    """Show extractable elements within a function."""
+    try:
+        params = ShowParams(function_name=function, file_path=file)
+        result = engine.show_function(params)
+        
+        if result.success:
+            typer.echo(f"Function: {result.function_name}")
+            if result.extractable_elements:
+                typer.echo(f"Found {len(result.extractable_elements)} extractable elements:")
+                for element in result.extractable_elements:
+                    typer.echo(f"  - {element.id} ({element.type})")
+                    typer.echo(f"    Code: {element.code[:50]}...")
+                    typer.echo(f"    Location: {element.location}")
+                    typer.echo(f"    Extractable: {element.extractable}")
+            else:
+                typer.echo("No extractable elements found.")
+        else:
+            typer.echo(f"Failed to analyze function: {result.message or 'Unknown error'}", err=True)
             raise typer.Exit(1)
             
     except RefactoringError as e:

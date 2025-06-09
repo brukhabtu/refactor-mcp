@@ -8,15 +8,12 @@ This module provides:
 - Common test data and mocking utilities
 """
 
-import os
 import tempfile
-import shutil
 from pathlib import Path
-from typing import Generator, Dict, Any, List
-from unittest.mock import Mock, MagicMock
+from typing import Generator
+from unittest.mock import Mock
 
 import pytest
-from pydantic import BaseModel
 
 from refactor_mcp.models import (
     SymbolInfo,
@@ -27,7 +24,6 @@ from refactor_mcp.models import (
     FindResult,
     ShowResult,
     BackupResult,
-    ErrorResponse,
     create_error_response,
 )
 

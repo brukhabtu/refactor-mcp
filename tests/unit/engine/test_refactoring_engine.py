@@ -7,7 +7,7 @@ from typing import List
 
 from refactor_mcp.engine import RefactoringEngine, detect_language, find_project_root
 from refactor_mcp.models.errors import (
-    UnsupportedLanguageError, ValidationError, ProviderError, BackupError
+    UnsupportedLanguageError, ProviderError
 )
 from refactor_mcp.models.params import (
     AnalyzeParams, FindParams, ShowParams, RenameParams, ExtractParams

@@ -87,6 +87,7 @@ class RopeProvider:
 
     def _find_resource(self, project: Project, symbol_name: str) -> Optional[File]:
         """Find the file containing a symbol"""
+        # First try to find by exact module path
         if '.' in symbol_name:
             module_path = symbol_name.replace('.', os.sep) + '.py'
             try:
@@ -96,12 +97,18 @@ class RopeProvider:
             except Exception:
                 pass
         
+        # Search all Python files for the symbol name (just the base name)
+        search_name = symbol_name.split('.')[-1]
         for resource in project.get_files():
             if resource.name.endswith('.py'):
                 try:
                     source = resource.read()
-                    if symbol_name in source:
-                        return resource
+                    # Parse AST to find the symbol definition
+                    tree = ast.parse(source)
+                    for node in ast.walk(tree):
+                        if (hasattr(node, 'name') and node.name == search_name and 
+                            isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Name))):
+                            return resource
                 except Exception:
                     continue
         
@@ -121,11 +128,23 @@ class RopeProvider:
             source = resource.read()
             tree = ast.parse(source)
             
+            # Look for the symbol definition
+            search_name = symbol_name.split('.')[-1]
             for node in ast.walk(tree):
-                if hasattr(node, 'name') and node.name == symbol_name.split('.')[-1]:
+                if (hasattr(node, 'name') and node.name == search_name and 
+                    isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Assign))):
                     symbol_info = self._create_symbol_info(project, resource, node, symbol_name)
                     self._symbol_cache[cache_key] = symbol_info
                     return symbol_info
+            
+            # Also check for variable assignments and other name definitions
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name) and target.id == search_name:
+                            symbol_info = self._create_symbol_info(project, resource, target, symbol_name)
+                            self._symbol_cache[cache_key] = symbol_info
+                            return symbol_info
                     
         except Exception as e:
             logger.warning(f"Failed to parse {resource.path}: {e}")
@@ -151,8 +170,23 @@ class RopeProvider:
                 try:
                     source = resource.read()
                     lines = source.split('\n')
-                    offset = sum(len(line) + 1 for line in lines[:node.lineno - 1])
-                    return offset + getattr(node, 'col_offset', 0)
+                    if hasattr(node, 'lineno') and hasattr(node, 'col_offset'):
+                        # Calculate byte offset to the start of the symbol name
+                        offset = sum(len(line) + 1 for line in lines[:node.lineno - 1])
+                        offset += node.col_offset
+                        
+                        # For function/class definitions, point to the name, not 'def'/'class'
+                        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+                            line_content = lines[node.lineno - 1]
+                            if isinstance(node, ast.FunctionDef):
+                                name_start = line_content.find(node.name, node.col_offset)
+                            else:
+                                name_start = line_content.find(node.name, node.col_offset)
+                            if name_start >= 0:
+                                offset = sum(len(line) + 1 for line in lines[:node.lineno - 1]) + name_start
+                        
+                        return offset
+                    return 0
                 except Exception:
                     return 0
             
@@ -405,8 +439,9 @@ class RopeProvider:
     def _parse_extraction_source(self, source: str) -> Optional[Any]:
         """Parse extraction source specification"""
         class SourceInfo:
-            def __init__(self, module, element):
+            def __init__(self, module, function, element=None):
                 self.module = module
+                self.function = function  
                 self.element = element
         
         if not source or '.' not in source:
@@ -417,7 +452,12 @@ class RopeProvider:
         parts = [part for part in parts if part]
         
         if len(parts) >= 2:
-            return SourceInfo('.'.join(parts[:-1]), parts[-1])
+            # For module.function.element pattern
+            if len(parts) >= 3:
+                return SourceInfo(parts[0], parts[1], parts[2])
+            # For module.function pattern  
+            else:
+                return SourceInfo(parts[0], parts[1])
         
         return None
 
@@ -427,17 +467,34 @@ class RopeProvider:
             source = resource.read()
             tree = ast.parse(source)
             
+            # Find the parent function first
+            function_node = None
             for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef) and node.name == source_info.element:
-                    lines = source.split('\n')
-                    start_offset = sum(len(line) + 1 for line in lines[:node.lineno - 1])
-                    
-                    end_line = node.end_lineno if hasattr(node, 'end_lineno') else node.lineno + 10
-                    end_offset = sum(len(line) + 1 for line in lines[:end_line])
-                    
-                    return start_offset, end_offset
+                if isinstance(node, ast.FunctionDef) and node.name == source_info.function:
+                    function_node = node
+                    break
             
-            return 0, len(source)
+            if not function_node:
+                # Fallback: extract entire function if element not specified
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.FunctionDef) and node.name == source_info.function:
+                        lines = source.split('\n')
+                        start_offset = sum(len(line) + 1 for line in lines[:node.lineno - 1])
+                        end_line = node.end_lineno if hasattr(node, 'end_lineno') else node.lineno + 10
+                        end_offset = sum(len(line) + 1 for line in lines[:end_line])
+                        return start_offset, end_offset
+                return 0, len(source)
+            
+            # For now, extract a reasonable portion of the function
+            # In a real implementation, this would be more sophisticated
+            lines = source.split('\n')
+            start_line = function_node.lineno + 2  # Skip function def and docstring
+            end_line = min(start_line + 10, function_node.end_lineno if hasattr(function_node, 'end_lineno') else len(lines))
+            
+            start_offset = sum(len(line) + 1 for line in lines[:start_line - 1])
+            end_offset = sum(len(line) + 1 for line in lines[:end_line - 1])
+            
+            return start_offset, end_offset
             
         except Exception:
             return 0, len(resource.read())
@@ -482,12 +539,13 @@ class RopeProvider:
                         message=f"Cannot parse source: {params.source}"
                     )
                 
-                resource = self._find_resource(project, source_info.module)
+                # Find resource by looking for the function in any file
+                resource = self._find_resource(project, source_info.function)
                 if not resource:
                     return ExtractResult(
                         success=False,
-                        error_type="resource_not_found",
-                        message=f"Cannot find module: {source_info.module}"
+                        error_type="resource_not_found", 
+                        message=f"Cannot find function: {source_info.function}"
                     )
                 
                 start_offset, end_offset = self._get_extraction_range(project, resource, source_info)

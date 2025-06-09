@@ -6,7 +6,6 @@ fixtures, and mock providers for testing refactor-mcp functionality.
 """
 
 import pytest
-from pathlib import Path
 
 from refactor_mcp.models import (
     AnalyzeParams,
@@ -15,7 +14,6 @@ from refactor_mcp.models import (
     FindParams,
     ShowParams,
     SymbolInfo,
-    ElementInfo,
 )
 from tests.test_utils import (
     assert_valid_symbol_info,

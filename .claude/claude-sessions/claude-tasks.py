@@ -490,7 +490,6 @@ class TaskManager:
         """Watch multiple tasks in real-time with live updates"""
         try:
             import signal
-            import threading
             from collections import defaultdict
             
             # Handle Ctrl+C gracefully
@@ -680,7 +679,7 @@ class TaskManager:
                 print(f"\n--- Response {i} ---")
                 print(f"Claude: {message.get('result', message.get('error', 'No result found'))}")
         
-        print(f"\n=== Full Task Data ===")
+        print("\n=== Full Task Data ===")
         print(json.dumps(task_data, indent=2))
         return 0
     
