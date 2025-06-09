@@ -24,7 +24,7 @@ from tests.test_utils import (
     assert_error_result,
     create_symbol,
     create_element,
-    TestFileManager,
+    FileManagerHelper,
     create_test_project_structure,
     unit_test,
     integration_test,
@@ -32,7 +32,7 @@ from tests.test_utils import (
 from tests.mocks.builders import (
     MockProviderBuilder,
     MockResultBuilder,
-    TestScenarioBuilder,
+    ScenarioBuilderHelper,
 )
 from tests.mocks.providers import MockRopeProvider, FailingProvider
 from tests.mocks.engines import MockRefactoringEngine, MockEngineBuilder
@@ -100,7 +100,7 @@ class TestMockInfrastructure:
                    .build())
         
         # Build a complete test scenario
-        scenario = (TestScenarioBuilder("analyze_scenario")
+        scenario = (ScenarioBuilderHelper("analyze_scenario")
                    .with_provider(provider)
                    .with_mock_engine()
                    .expect_analyze_result("target_func", 
@@ -121,7 +121,7 @@ class TestFileManagement:
     
     def test_test_file_manager(self, temp_dir):
         """Test TestFileManager functionality."""
-        manager = TestFileManager(temp_dir)
+        manager = FileManagerHelper(temp_dir)
         
         # Create files and directories
         test_file = manager.create_file("test.py", "print('hello')")

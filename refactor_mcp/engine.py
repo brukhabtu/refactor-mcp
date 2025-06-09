@@ -109,18 +109,10 @@ class RefactoringEngine:
 
     def _get_affected_files(self, operation: str, params: any) -> List[str]:
         """Get list of files that might be affected by operation."""
-        files = []
-        
-        if hasattr(params, 'file_path') and params.file_path:
-            files.append(params.file_path)
-        
-        # For rename operations, we might need to backup multiple files
-        # Provider will determine the actual scope during operation
-        if operation == 'rename_symbol':
-            # Start with the main file, provider can extend this list
-            pass
-            
-        return files
+        # For the new symbol-based system, we don't have explicit file paths
+        # The provider will determine the actual scope during operation
+        # For now, return empty list to disable backup functionality
+        return []
 
     def _create_operation_backup(self, operation_id: str, files: List[str]) -> bool:
         """Create backup for operation if needed."""
@@ -149,17 +141,18 @@ class RefactoringEngine:
         """Analyze symbol using appropriate provider"""
         operation = "analyze_symbol"
         
-        with track_operation(operation, symbol=params.symbol, file_path=params.file_path) as metrics:
+        with track_operation(operation, symbol=params.symbol_name) as metrics:
             # Validate parameters
             self._validate_operation_params(operation, params)
             
-            language = detect_language(params.file_path)
-            provider = self.get_provider(language)
+            # For AnalyzeParams, we only have symbol_name, no file_path
+            # Provider will handle symbol resolution
+            provider = self.get_provider("python")  # Default to python for now
             
             if not provider:
-                raise UnsupportedLanguageError(language, params.file_path)
+                raise UnsupportedLanguageError("python")
 
-            logger.info(f"Analyzing symbol {params.symbol} in {params.file_path}")
+            logger.info(f"Analyzing symbol {params.symbol_name}")
             
             try:
                 result = provider.analyze_symbol(params)
@@ -173,11 +166,11 @@ class RefactoringEngine:
         operation = "find_symbols"
         
         with track_operation(operation, pattern=params.pattern) as metrics:
-            language = detect_language(params.file_path) if params.file_path else "python"
-            provider = self.get_provider(language)
+            # FindParams only has pattern, no file_path
+            provider = self.get_provider("python")  # Default to python for now
             
             if not provider:
-                raise UnsupportedLanguageError(language)
+                raise UnsupportedLanguageError("python")
 
             logger.info(f"Finding symbols matching '{params.pattern}'")
             
@@ -192,17 +185,17 @@ class RefactoringEngine:
         """Show function details using appropriate provider"""
         operation = "show_function"
         
-        with track_operation(operation, function=params.function_name, file_path=params.file_path) as metrics:
+        with track_operation(operation, function=params.function_name) as metrics:
             # Validate parameters
             self._validate_operation_params(operation, params)
             
-            language = detect_language(params.file_path)
-            provider = self.get_provider(language)
+            # ShowParams only has function_name, no file_path
+            provider = self.get_provider("python")  # Default to python for now
             
             if not provider:
-                raise UnsupportedLanguageError(language, params.file_path)
+                raise UnsupportedLanguageError("python")
 
-            logger.info(f"Showing function {params.function_name} in {params.file_path}")
+            logger.info(f"Showing function {params.function_name}")
             
             try:
                 result = provider.show_function(params)
@@ -216,21 +209,21 @@ class RefactoringEngine:
         operation = "rename_symbol"
         operation_id = str(uuid.uuid4())
         
-        with track_operation(operation, old_name=params.old_name, new_name=params.new_name, file_path=params.file_path) as metrics:
+        with track_operation(operation, old_name=params.symbol_name, new_name=params.new_name) as metrics:
             # Validate parameters
             self._validate_operation_params(operation, params)
             
-            language = detect_language(params.file_path)
-            provider = self.get_provider(language)
+            # RenameParams has symbol_name and new_name
+            provider = self.get_provider("python")  # Default to python for now
             
             if not provider:
-                raise UnsupportedLanguageError(language, params.file_path)
+                raise UnsupportedLanguageError("python")
 
             # Create backup for destructive operation
             affected_files = self._get_affected_files(operation, params)
             self._create_operation_backup(operation_id, affected_files)
             
-            logger.info(f"Renaming symbol {params.old_name} to {params.new_name} in {params.file_path}")
+            logger.info(f"Renaming symbol {params.symbol_name} to {params.new_name}")
             
             try:
                 result = provider.rename_symbol(params)
@@ -251,25 +244,25 @@ class RefactoringEngine:
         operation = "extract_element"
         operation_id = str(uuid.uuid4())
         
-        with track_operation(operation, element_type=params.element_type, file_path=params.file_path) as metrics:
+        with track_operation(operation, source=params.source, new_name=params.new_name) as metrics:
             # Validate parameters
             self._validate_operation_params(operation, params)
             
-            language = detect_language(params.file_path)
-            provider = self.get_provider(language)
+            # ExtractParams has source and new_name
+            provider = self.get_provider("python")  # Default to python for now
             
             if not provider:
-                raise UnsupportedLanguageError(language, params.file_path)
+                raise UnsupportedLanguageError("python")
 
             # Create backup for destructive operation
             affected_files = self._get_affected_files(operation, params)
             self._create_operation_backup(operation_id, affected_files)
             
-            logger.info(f"Extracting {params.element_type} from {params.file_path}")
+            logger.info(f"Extracting {params.source} as {params.new_name}")
             
             try:
                 result = provider.extract_element(params)
-                metrics.metadata['extracted_element'] = getattr(params, 'element_id', 'unknown')
+                metrics.metadata['extracted_element'] = params.source
                 
                 # Clean up backup on success
                 self._cleanup_operation(operation_id, success=True)

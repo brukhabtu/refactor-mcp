@@ -395,7 +395,7 @@ class ErrorResponseBuilder:
         return ErrorResponse(**self.data)
 
 
-class TestScenarioBuilder:
+class ScenarioBuilderHelper:
     """
     Builder for creating complete test scenarios.
     
@@ -410,32 +410,32 @@ class TestScenarioBuilder:
         self.expected_results = {}
         self.test_data = {}
     
-    def with_provider(self, provider) -> "TestScenarioBuilder":
+    def with_provider(self, provider) -> "ScenarioBuilderHelper":
         """Add a provider to the scenario."""
         self.providers.append(provider)
         return self
     
-    def with_mock_engine(self) -> "TestScenarioBuilder":
+    def with_mock_engine(self) -> "ScenarioBuilderHelper":
         """Use a mock engine for the scenario."""
         self.engine = MockRefactoringEngine()
         return self
     
-    def expect_analyze_result(self, symbol_name: str, result: Union[AnalysisResult, ErrorResponse]) -> "TestScenarioBuilder":
+    def expect_analyze_result(self, symbol_name: str, result: Union[AnalysisResult, ErrorResponse]) -> "ScenarioBuilderHelper":
         """Set expected result for symbol analysis."""
         self.expected_results[("analyze", symbol_name)] = result
         return self
     
-    def expect_rename_result(self, old_name: str, result: Union[RenameResult, ErrorResponse]) -> "TestScenarioBuilder":
+    def expect_rename_result(self, old_name: str, result: Union[RenameResult, ErrorResponse]) -> "ScenarioBuilderHelper":
         """Set expected result for symbol rename."""
         self.expected_results[("rename", old_name)] = result
         return self
     
-    def expect_extract_result(self, source: str, result: Union[ExtractResult, ErrorResponse]) -> "TestScenarioBuilder":
+    def expect_extract_result(self, source: str, result: Union[ExtractResult, ErrorResponse]) -> "ScenarioBuilderHelper":
         """Set expected result for element extraction."""
         self.expected_results[("extract", source)] = result
         return self
     
-    def with_test_data(self, key: str, value: Any) -> "TestScenarioBuilder":
+    def with_test_data(self, key: str, value: Any) -> "ScenarioBuilderHelper":
         """Add test data to the scenario."""
         self.test_data[key] = value
         return self

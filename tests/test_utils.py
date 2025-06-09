@@ -89,7 +89,7 @@ def assert_models_equal(model1: BaseModel, model2: BaseModel, exclude_fields: Se
 
 
 # File system utilities
-class TestFileManager:
+class FileManagerHelper:
     """Utility class for managing test files and directories."""
     
     def __init__(self, base_dir: Path):
@@ -353,7 +353,7 @@ class MockProviderBuilder:
 # Common test patterns
 def create_test_project_structure(base_dir: Path) -> Dict[str, Path]:
     """Create a standard test project structure."""
-    manager = TestFileManager(base_dir)
+    manager = FileManagerHelper(base_dir)
     
     # Create main package
     package_dir = manager.create_package("myproject")
