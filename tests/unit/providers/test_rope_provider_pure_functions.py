@@ -1,4 +1,4 @@
-"""Unit tests for pure functions in RopeProvider - highly valuable tests."""
+"""Unit tests for RopeProvider - focused on pure functions and valuable logic."""
 
 import pytest
 from unittest.mock import Mock
