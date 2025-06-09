@@ -536,11 +536,14 @@ class TaskManager:
                              cwd=worktree_path, check=True)
                 print(f"Committed changes in worktree branch '{current_branch}'")
             
-            # In main repo: merge the branch
-            subprocess.run(['git', 'checkout', 'main'], cwd=main_repo, check=True)
+            # In main repo: merge the branch into current branch (not main)
+            current_main_branch = subprocess.run(['git', 'branch', '--show-current'], 
+                                                cwd=main_repo, capture_output=True, text=True, check=True)
+            target_branch = current_main_branch.stdout.strip()
+            
             subprocess.run(['git', 'merge', current_branch], cwd=main_repo, check=True)
             
-            print(f"✅ Successfully merged changes from task '{name}' (branch: {current_branch})")
+            print(f"✅ Successfully merged changes from task '{name}' (branch: {current_branch}) into {target_branch}")
             print(f"💡 You can now remove the task with: .claude/ct remove {name}")
             return 0
             
