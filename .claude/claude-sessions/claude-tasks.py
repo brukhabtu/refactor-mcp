@@ -446,6 +446,219 @@ class TaskManager:
         
         return 0
 
+    def get_all_tasks(self) -> List[TaskInfo]:
+        """Get all tasks as TaskInfo objects"""
+        task_files = list(TASKS_DIR.glob("*.json"))
+        tasks = []
+        
+        for task_file in task_files:
+            if task_file.name.startswith('_') or '_temp_' in task_file.name or '_debug_' in task_file.name:  # Skip temp/debug files
+                continue
+                
+            name = task_file.stem
+            task_data = self.read_task(name)
+            
+            if not task_data:
+                continue
+                
+            messages = task_data.get('messages', [])
+            session_id = self.get_last_session_id(name)
+            
+            # Count message types
+            request_count = sum(1 for msg in messages if msg.get('type') == 'request')
+            response_count = sum(1 for msg in messages if msg.get('type') == 'result')
+            
+            # Determine status based on request/response balance and recent activity
+            if response_count == 0:
+                status = "starting"
+            elif request_count == response_count:
+                status = "completed"
+            else:
+                status = "active"
+            
+            tasks.append(TaskInfo(
+                name=name,
+                status=status,
+                session_id=session_id,
+                requests=request_count,
+                responses=response_count
+            ))
+        
+        return sorted(tasks, key=lambda t: t.name)
+
+    def watch_tasks(self, task_names: Optional[List[str]] = None) -> int:
+        """Watch multiple tasks in real-time with live updates"""
+        try:
+            import signal
+            import threading
+            from collections import defaultdict
+            
+            # Handle Ctrl+C gracefully
+            def signal_handler(sig, frame):
+                print("\n\n👋 Stopping watch...")
+                sys.exit(0)
+            signal.signal(signal.SIGINT, signal_handler)
+            
+            # Get initial task list
+            task_list = self.get_all_tasks()
+            all_tasks = [task.name for task in task_list]
+            
+            # Determine which tasks to watch
+            if task_names:
+                # Validate provided task names
+                invalid_tasks = [name for name in task_names if name not in all_tasks]
+                if invalid_tasks:
+                    print(f"❌ Task(s) not found: {', '.join(invalid_tasks)}")
+                    print(f"Available tasks: {', '.join(all_tasks)}")
+                    return 1
+                watch_list = task_names
+            else:
+                # Watch all active/starting tasks
+                watch_list = [task.name for task in task_list 
+                             if task.status in ['starting', 'active']]
+                if not watch_list:
+                    print("📋 No active tasks to watch. Available tasks:")
+                    for task in task_list:
+                        print(f"   {task.name} ({task.status})")
+                    return 0
+            
+            print(f"👀 Watching {len(watch_list)} task(s): {', '.join(watch_list)}")
+            print("   Press Ctrl+C to stop watching\n")
+            
+            # Track state for each task
+            last_state = defaultdict(dict)
+            last_activity = defaultdict(str)
+            completed_tasks = set()
+            
+            def clear_screen():
+                os.system('clear' if os.name == 'posix' else 'cls')
+            
+            def get_task_summary(name: str) -> Dict[str, Any]:
+                """Get current task summary"""
+                task_data = self.read_task(name)
+                if not task_data:
+                    return {'status': 'not_found', 'last_activity': 'Unknown'}
+                
+                messages = task_data.get('messages', [])
+                status = 'starting'
+                last_activity = 'No activity'
+                progress = ''
+                
+                if messages:
+                    last_msg = messages[-1]
+                    last_activity = last_msg.get('timestamp', 'Unknown')
+                    
+                    if last_msg.get('type') == 'result':
+                        if last_msg.get('is_error'):
+                            status = 'error'
+                            progress = f"❌ {last_msg.get('error', 'Unknown error')[:100]}"
+                        else:
+                            status = 'completed'
+                            result = last_msg.get('result', '')
+                            progress = f"✅ {result[:100]}{'...' if len(result) > 100 else ''}"
+                    else:
+                        status = 'active'
+                        request = last_msg.get('message', '')
+                        progress = f"🔄 {request[:100]}{'...' if len(request) > 100 else ''}"
+                
+                return {
+                    'status': status,
+                    'last_activity': last_activity,
+                    'progress': progress,
+                    'message_count': len(messages),
+                    'requests': len([m for m in messages if m.get('type') == 'request']),
+                    'responses': len([m for m in messages if m.get('type') == 'result'])
+                }
+            
+            # Main watch loop
+            update_count = 0
+            while True:
+                update_count += 1
+                current_time = datetime.now().strftime("%H:%M:%S")
+                
+                # Clear screen every few updates for better readability
+                if update_count % 10 == 1:
+                    clear_screen()
+                
+                print(f"📊 Task Monitor - {current_time} (Update #{update_count})")
+                print("=" * 80)
+                
+                any_active = False
+                for task_name in watch_list:
+                    if task_name in completed_tasks:
+                        continue
+                        
+                    summary = get_task_summary(task_name)
+                    status = summary['status']
+                    
+                    # Status icon and color
+                    if status == 'completed':
+                        icon = "✅"
+                        completed_tasks.add(task_name)
+                    elif status == 'error':
+                        icon = "❌"
+                        completed_tasks.add(task_name)
+                    elif status == 'active':
+                        icon = "🔄"
+                        any_active = True
+                    elif status == 'starting':
+                        icon = "⏳"
+                        any_active = True
+                    else:
+                        icon = "❓"
+                    
+                    # Check for updates
+                    current_state = f"{summary['message_count']}-{summary['last_activity']}"
+                    state_changed = last_state[task_name].get('state') != current_state
+                    last_state[task_name]['state'] = current_state
+                    
+                    update_indicator = " 🆕" if state_changed else ""
+                    
+                    print(f"{icon} {task_name:20} | {status:10} | {summary['requests']:2}req/{summary['responses']:2}res{update_indicator}")
+                    
+                    # Show progress
+                    if summary['progress']:
+                        print(f"   └─ {summary['progress']}")
+                    
+                    # Show recent activity for changed tasks
+                    if state_changed and summary['progress']:
+                        print(f"   └─ 🕐 {summary['last_activity']}")
+                    
+                    print()
+                
+                # Show completion summary
+                if completed_tasks:
+                    print(f"🏁 Completed: {len(completed_tasks)}/{len(watch_list)} tasks")
+                
+                # Exit if all tasks completed
+                if len(completed_tasks) == len(watch_list):
+                    print("🎉 All watched tasks completed!")
+                    break
+                
+                # Exit if no tasks are active and we have some completed
+                if not any_active and completed_tasks:
+                    print("⏸️  No more active tasks to watch")
+                    break
+                
+                print("─" * 80)
+                print("⏳ Updating in 3 seconds... (Ctrl+C to stop)")
+                
+                # Wait with shorter intervals for responsiveness
+                for i in range(30):  # 3 seconds in 0.1s intervals
+                    time.sleep(0.1)
+                
+                # Move cursor up to overwrite status line
+                print("\033[1A\033[K", end="")
+                
+        except KeyboardInterrupt:
+            print("\n\n👋 Watch stopped by user")
+            return 0
+        except Exception as e:
+            print(f"❌ Watch error: {e}")
+            return 1
+        
+        return 0
+
     def output_task(self, name: str) -> int:
         """Show task conversation with metadata"""
         task_data = self.read_task(name)
@@ -566,6 +779,7 @@ def main() -> int:
         print("  continue <name> <message>                  Continue an existing Claude task")
         print("  merge <name>                               Merge worktree changes back to main")
         print("  list                                       List all Claude tasks")
+        print("  watch [task1 task2 ...]                   Watch multiple tasks in real-time")
         print("  conversation <name>                        Show clean task conversation")
         print("  status <name>                              Show task status and completion info")
         print("  show <name>                                Show detailed Claude task info")
@@ -577,7 +791,9 @@ def main() -> int:
         print('  claude-tasks start backend "Fix the login bug" /path/to/backend')
         print('  claude-tasks start feature "Add new API" --worktree')
         print('  claude-tasks continue backend "Continue fixing the login bug"')
-        print("  claude-tasks merge feature  # Merge worktree changes to main")
+        print("  claude-tasks watch                         # Watch all active tasks")
+        print("  claude-tasks watch task1 task2             # Watch specific tasks")
+        print("  claude-tasks merge feature                 # Merge worktree changes to main")
         print("  claude-tasks conversation backend")
         print("  claude-tasks list")
         return 0
@@ -648,6 +864,11 @@ def main() -> int:
             print("Usage: claude-tasks remove <name>")
             return 1
         return manager.remove_task(sys.argv[2])
+    
+    elif command == 'watch':
+        # Watch specific tasks or all active tasks
+        task_names = sys.argv[2:] if len(sys.argv) > 2 else None
+        return manager.watch_tasks(task_names)
     
     else:
         print(f"Unknown command: {command}")
