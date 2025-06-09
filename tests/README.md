@@ -33,7 +33,7 @@ tests/
 ### 2. Testing Utilities (`test_utils.py`)
 
 - **Assertion helpers**: `assert_valid_symbol_info()`, `assert_successful_result()`, etc.
-- **File management**: `TestFileManager` for creating test files and projects
+- **File management**: `FileManagerHelper` for creating test files and projects
 - **Code comparison**: `compare_python_code()`, `validate_python_syntax()`
 - **Builder patterns**: `SymbolInfoBuilder`, `ElementInfoBuilder`, etc.
 - **Test decorators**: `@unit_test`, `@integration_test`, `@slow_test`
@@ -55,7 +55,7 @@ tests/
 
 - **`MockProviderBuilder`**: Build providers with specific behaviors
 - **`MockResultBuilder`**: Create result objects with realistic data
-- **`TestScenarioBuilder`**: Build complete test scenarios
+- **`ScenarioBuilderHelper`**: Build complete test scenarios
 
 ## Usage Examples
 
@@ -76,7 +76,7 @@ def test_symbol_analysis(mock_provider, sample_symbol_info):
 ```python
 def test_file_operations(temp_dir):
     """Test file operations with temporary directory."""
-    manager = TestFileManager(temp_dir)
+    manager = FileManagerHelper(temp_dir)
     
     # Create test files
     python_file = manager.create_python_file("module", "def func(): pass")
@@ -110,7 +110,7 @@ def test_with_custom_provider():
 def test_refactoring_workflow():
     """Test complete refactoring workflow."""
     # Build test scenario
-    scenario = (TestScenarioBuilder("workflow_test")
+    scenario = (ScenarioBuilderHelper("workflow_test")
                .with_provider(MockRopeProvider())
                .with_mock_engine()
                .expect_analyze_result("target", analysis_result)
