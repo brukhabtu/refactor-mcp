@@ -6,7 +6,6 @@ RefactoringEngine without requiring real provider implementations.
 """
 
 from typing import List, Dict, Any, Optional, Union
-from unittest.mock import Mock
 
 from refactor_mcp.models import (
     AnalysisResult,
