@@ -7,17 +7,17 @@ including test frameworks, builders, validators, and performance benchmarks.
 
 import time
 import json
-from typing import Any, Dict, List, Optional, Union, Callable, Protocol
+from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from datetime import datetime
-from abc import ABC, abstractmethod
 
 from refactor_mcp.models.params import AnalyzeParams, RenameParams, ExtractParams, FindParams, ShowParams
 from refactor_mcp.models.responses import (
-    AnalysisResult, RenameResult, ExtractResult, FindResult, ShowResult, 
-    ErrorResponse, SymbolInfo, ElementInfo
+    AnalysisResult, RenameResult
 )
+from refactor_mcp.models.errors import ErrorResponse
+from refactor_mcp.models import SymbolInfo, ElementInfo
 from refactor_mcp.providers.base import RefactoringProvider
 
 

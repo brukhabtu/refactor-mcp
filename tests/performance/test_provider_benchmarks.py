@@ -8,18 +8,15 @@ including benchmarking, scalability testing, and performance regression detectio
 import time
 import statistics
 import pytest
-from typing import List, Dict, Any, Callable
+from typing import List, Dict, Any
 from dataclasses import dataclass
-from unittest.mock import Mock
 
 from refactor_mcp.models.params import AnalyzeParams, RenameParams, ExtractParams, FindParams, ShowParams
-from refactor_mcp.models.responses import AnalysisResult, RenameResult, ExtractResult, FindResult, ShowResult
 from refactor_mcp.providers.base import RefactoringProvider
-from refactor_mcp.providers.registry import RefactoringEngine
 
 from tests.mocks.providers import MockRopeProvider, MockTreeSitterProvider
 from tests.mocks.provider_testing_framework import (
-    ProviderPerformanceBenchmark, MockProviderFactory, TestDataGenerator
+    MockProviderFactory
 )
 
 

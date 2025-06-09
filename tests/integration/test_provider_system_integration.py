@@ -5,18 +5,13 @@ This module tests the complete provider ecosystem including multi-provider
 scenarios, system integration, and end-to-end workflows.
 """
 
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from typing import List, Dict, Any
-from unittest.mock import Mock, patch
+import time
 
-from refactor_mcp.providers.base import RefactoringProvider
-from refactor_mcp.providers.registry import RefactoringEngine, engine
-from refactor_mcp.models.params import AnalyzeParams, RenameParams, ExtractParams, FindParams, ShowParams
-from refactor_mcp.models.responses import AnalysisResult, RenameResult, ExtractResult, FindResult, ShowResult, ErrorResponse
-from refactor_mcp.models import SymbolInfo, ElementInfo
+from refactor_mcp.providers.registry import RefactoringEngine
+from refactor_mcp.models.params import AnalyzeParams, RenameParams, ExtractParams, FindParams
+from refactor_mcp.models.responses import AnalysisResult
+from refactor_mcp.models.errors import ErrorResponse
+from refactor_mcp.models import SymbolInfo
 
 from tests.mocks.providers import MockRopeProvider, MockTreeSitterProvider, FailingProvider, ConfigurableProvider
 from tests.mocks.provider_testing_framework import (
@@ -557,7 +552,6 @@ class TestRealWorldIntegrationScenarios:
     def test_concurrent_provider_operations(self):
         """Test concurrent operations (simulated)."""
         import threading
-        import time
         
         results = []
         errors = []

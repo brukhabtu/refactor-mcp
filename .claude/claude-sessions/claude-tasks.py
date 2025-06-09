@@ -490,7 +490,6 @@ class TaskManager:
         """Watch multiple tasks in real-time with live updates"""
         try:
             import signal
-            import threading
             from collections import defaultdict
             
             # Handle Ctrl+C gracefully

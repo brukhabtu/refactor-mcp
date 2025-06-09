@@ -6,11 +6,10 @@ that support comprehensive testing of refactoring providers.
 """
 
 import pytest
-from typing import Any, Dict, List, Optional, Union
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
-from refactor_mcp.models.params import AnalyzeParams, RenameParams, ExtractParams, FindParams, ShowParams
-from refactor_mcp.models.responses import AnalysisResult, RenameResult, ExtractResult, FindResult, ShowResult, ErrorResponse
+from refactor_mcp.models.params import AnalyzeParams, FindParams
+from refactor_mcp.models.responses import AnalysisResult
 from refactor_mcp.providers.base import RefactoringProvider
 
 # These imports will fail initially - we'll implement them step by step

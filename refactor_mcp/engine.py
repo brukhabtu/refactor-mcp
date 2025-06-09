@@ -3,7 +3,7 @@
 import uuid
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 
 from .models.errors import (
     UnsupportedLanguageError,
