@@ -5,8 +5,7 @@ Provides fluent interfaces for constructing complex mock objects
 and test scenarios with minimal boilerplate code.
 """
 
-from typing import List, Dict, Any, Optional, Union, Callable
-from unittest.mock import Mock
+from typing import List, Dict, Any, Union
 
 from refactor_mcp.models import (
     SymbolInfo,
@@ -153,7 +152,7 @@ class SymbolInfoBuilder:
             "name": name,
             "qualified_name": f"module.{name}",
             "type": "function",
-            "definition_location": f"module.py:10",
+            "definition_location": "module.py:10",
             "scope": "global"
         }
     

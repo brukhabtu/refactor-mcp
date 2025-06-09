@@ -5,8 +5,7 @@ These mock providers simulate the behavior of real refactoring engines
 while providing controlled, predictable responses for testing.
 """
 
-from typing import List, Dict, Any, Optional, Union
-from unittest.mock import Mock
+from typing import Union
 
 from refactor_mcp.models import (
     SymbolInfo,
@@ -131,8 +130,8 @@ class MockRopeProvider:
         # Mock reference locations
         references = [
             f"test_{symbol_name}.py:10",
-            f"main.py:25",
-            f"utils.py:15"
+            "main.py:25",
+            "utils.py:15"
         ]
         
         return AnalysisResult(

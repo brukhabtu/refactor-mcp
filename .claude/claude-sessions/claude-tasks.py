@@ -680,7 +680,7 @@ class TaskManager:
                 print(f"\n--- Response {i} ---")
                 print(f"Claude: {message.get('result', message.get('error', 'No result found'))}")
         
-        print(f"\n=== Full Task Data ===")
+        print("\n=== Full Task Data ===")
         print(json.dumps(task_data, indent=2))
         return 0
     

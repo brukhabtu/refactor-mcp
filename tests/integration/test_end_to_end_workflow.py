@@ -21,7 +21,6 @@ from refactor_mcp.models import (
     ERROR_SYMBOL_NOT_FOUND,
     ERROR_PROVIDER_NOT_FOUND,
 )
-from refactor_mcp.providers.base import RefactoringProvider
 
 
 class MockPythonProvider:

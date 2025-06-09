@@ -24,7 +24,7 @@ def monitor_session(name: str, pid: int, output_file: str, original_cwd: str) ->
             with open(output_path, "r") as f:
                 content = f.read().strip()
                 if not content:
-                    print(f"Error processing session output: Empty output file", file=sys.stderr)
+                    print("Error processing session output: Empty output file", file=sys.stderr)
                     return
                 
                 # Handle non-JSON Claude output (errors, etc.)

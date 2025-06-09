@@ -11,10 +11,9 @@ This module provides:
 
 import ast
 import difflib
-import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Set
-from unittest.mock import Mock, MagicMock
+from typing import Any, Dict, List, Union, Set
+from unittest.mock import Mock
 
 import pytest
 from pydantic import BaseModel
@@ -28,8 +27,6 @@ from refactor_mcp.models import (
     FindResult,
     ShowResult,
     ErrorResponse,
-    Position,
-    Range,
 )
 
 

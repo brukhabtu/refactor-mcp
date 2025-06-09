@@ -5,8 +5,16 @@ from pathlib import Path
 from typing import Optional
 
 from ..engine import engine
-from ..models.params import AnalyzeParams, FindParams, RenameParams
+from ..models.params import AnalyzeParams, FindParams, RenameParams, ExtractParams, ShowParams
 from ..models.errors import RefactoringError
+
+# Register Rope provider automatically
+try:
+    from ..providers.rope.rope import RopeProvider
+    rope_provider = RopeProvider()
+    engine.register_provider(rope_provider)
+except ImportError:
+    pass  # Rope provider not available
 
 
 
@@ -122,6 +130,72 @@ def rename(
                     typer.echo(f"  - {file_path}")
         else:
             typer.echo(f"Failed to rename symbol: {result.message or 'Unknown error'}", err=True)
+            raise typer.Exit(1)
+            
+    except RefactoringError as e:
+        typer.echo(f"Error: {e.message}", err=True)
+        raise typer.Exit(1)
+    except Exception as e:
+        typer.echo(f"Unexpected error: {e}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def extract(
+    source: str = typer.Argument(help="Source element to extract (qualified name or element ID)"),
+    new_name: str = typer.Argument(help="Name for extracted function"),
+    file: str = typer.Option(..., "--file", help="File containing the element")
+):
+    """Extract code element into a new function."""
+    try:
+        params = ExtractParams(source=source, new_name=new_name, file_path=file)
+        result = engine.extract_element(params)
+        
+        if result.success:
+            typer.echo(f"Successfully extracted '{source}' as '{new_name}'")
+            if result.extracted_code:
+                typer.echo(f"Extracted code:\n{result.extracted_code}")
+            if result.parameters:
+                typer.echo(f"Parameters: {', '.join(result.parameters)}")
+            if result.files_modified:
+                typer.echo("Modified files:")
+                for file_path in result.files_modified:
+                    typer.echo(f"  - {file_path}")
+        else:
+            typer.echo(f"Failed to extract element: {result.message or 'Unknown error'}", err=True)
+            raise typer.Exit(1)
+            
+    except RefactoringError as e:
+        typer.echo(f"Error: {e.message}", err=True)
+        raise typer.Exit(1)
+    except Exception as e:
+        typer.echo(f"Unexpected error: {e}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def show(
+    function_name: str = typer.Argument(help="Function to analyze for extractable elements"),
+    file: str = typer.Option(..., "--file", help="File containing the function")
+):
+    """Show extractable elements within a function."""
+    try:
+        params = ShowParams(function_name=function_name, file_path=file)
+        result = engine.show_function(params)
+        
+        if result.success:
+            typer.echo(f"Function: {result.function_name}")
+            if result.extractable_elements:
+                typer.echo(f"Found {len(result.extractable_elements)} extractable elements:")
+                for element in result.extractable_elements:
+                    typer.echo(f"  - {element.id} ({element.type})")
+                    typer.echo(f"    Code: {element.code[:50]}...")
+                    typer.echo(f"    Location: {element.location}")
+                    typer.echo(f"    Extractable: {element.extractable}")
+            else:
+                typer.echo("No extractable elements found.")
+        else:
+            typer.echo(f"Failed to analyze function: {result.message or 'Unknown error'}", err=True)
             raise typer.Exit(1)
             
     except RefactoringError as e:
