@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-def monitor_session(name: str, pid: int, output_file: str, mode: str) -> None:
+def monitor_session(name: str, pid: int, output_file: str, original_cwd: str) -> None:
     """Monitor a Claude session and append response when complete"""
     
     # Wait for PID to finish
@@ -22,15 +22,28 @@ def monitor_session(name: str, pid: int, output_file: str, mode: str) -> None:
     if output_path.exists():
         try:
             with open(output_path, "r") as f:
-                response = json.load(f)
+                content = f.read().strip()
+                if not content:
+                    print(f"Error processing session output: Empty output file", file=sys.stderr)
+                    return
+                
+                # Handle non-JSON Claude output (errors, etc.)
+                try:
+                    response = json.loads(content)
+                except json.JSONDecodeError:
+                    # Create error response for non-JSON output
+                    response = {
+                        "error": content,
+                        "result": f"Claude command failed: {content}"
+                    }
             
             # Add metadata and type to response
             response["type"] = "result"
             response["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S")
             response["project_dir"] = os.getcwd()
             
-            # Read current task
-            task_file = Path(f".claude/claude-sessions/tasks/{name}.json")
+            # Use absolute path to task file based on original working directory
+            task_file = Path(original_cwd) / ".claude/claude-sessions/tasks" / f"{name}.json"
             if task_file.exists():
                 with open(task_file, "r") as f:
                     task_data = json.load(f)
@@ -50,8 +63,8 @@ def monitor_session(name: str, pid: int, output_file: str, mode: str) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
-        print("Usage: session_monitor.py <name> <pid> <output_file> <mode>")
+        print("Usage: task_monitor.py <name> <pid> <output_file> <original_cwd>")
         sys.exit(1)
     
-    name, pid_str, output_file, mode = sys.argv[1:5]
-    monitor_session(name, int(pid_str), output_file, mode)
+    name, pid_str, output_file, original_cwd = sys.argv[1:5]
+    monitor_session(name, int(pid_str), output_file, original_cwd)

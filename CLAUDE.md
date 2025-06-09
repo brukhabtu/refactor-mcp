@@ -243,6 +243,9 @@ This project includes a Claude task management system for running background Cla
 
 # View task conversation
 .claude/ct conversation <name>
+
+# Remove a completed task
+.claude/ct remove <name>
 ```
 
 ### Examples
@@ -259,19 +262,26 @@ This project includes a Claude task management system for running background Cla
 
 # View the conversation
 .claude/ct conversation refactor
+
+# Clean up completed tasks
+.claude/ct remove refactor
 ```
 
 ### Task Management Features
 
 - **Non-blocking execution**: Tasks run in background, return immediately
 - **Conversation history**: All requests and responses are tracked
-- **Session resumption**: Continue tasks with `-r session_id` automatically
-- **Safe tool restrictions**: Background tasks use restricted tool set (no `git push`, etc.)
-- **Real-time monitoring**: VS Code extension shows task status in sidebar
+- **Session resumption**: Continue tasks with session IDs automatically
+- **Error handling**: Gracefully handles failed commands and non-JSON output
+- **Path isolation**: Tasks run in their correct project directories
+- **Cleanup management**: Remove completed tasks to keep workspace clean
 
-### VS Code Integration
+### Implementation Notes
 
-Tasks appear in the VS Code sidebar under "Claude Tasks" with real-time status updates. Use the "Claude Tasks Status" VS Code task to view current task status.
+- **Tool restrictions**: Currently disabled to ensure basic functionality; can be re-enabled later for security
+- **Monitoring**: Background processes monitor task completion and update conversation history
+- **JSON output**: Tasks use `--output-format json` for structured response parsing
+- **Absolute paths**: Handles directory changes properly for cross-project task execution
 
 ## Target Success Metrics
 

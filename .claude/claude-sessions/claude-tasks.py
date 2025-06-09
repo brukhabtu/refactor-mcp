@@ -13,8 +13,8 @@ from typing import List, Dict, Any, Optional
 CLAUDE_TASKS_DIR = Path(".claude/claude-sessions")  # Keep dir name for now to avoid breaking
 TASKS_DIR = CLAUDE_TASKS_DIR / "tasks"
 
-# Safe default tools - allows most operations but restricts dangerous ones
-DEFAULT_ALLOWED_TOOLS = "Read Edit MultiEdit Write Glob Grep LS Task Bash(git:status,git:diff,git:log,git:show,git:branch,git:checkout,git:add,git:commit,git:stash,npm:*,python:*,uv:*,pip:*,cargo:*,go:*) TodoRead TodoWrite"
+# Safe default tools - disable for now to get basic functionality working
+DEFAULT_ALLOWED_TOOLS = None  # "Read,Edit,MultiEdit,Write,Glob,Grep,LS,Task,Bash,TodoRead,TodoWrite"
 
 @dataclass
 class TaskInfo:
@@ -130,16 +130,20 @@ class TaskManager:
         output_file = TASKS_DIR / f"{name}_temp_output.json"
         
         try:
+            # Store current directory for monitor script
+            original_cwd = os.getcwd()
             os.chdir(project_dir)
-            with open(output_file, 'w') as f:
-                process = subprocess.Popen([
-                    'claude', '-p', '--output-format', 'json', 
-                    '--allowedTools', DEFAULT_ALLOWED_TOOLS,
-                    message
-                ], stdout=f, stderr=subprocess.STDOUT)
             
-            # Start background monitor (detached)
-            self._monitor_task(name, process.pid, output_file)
+            cmd = ['claude', '-p', '--output-format', 'json']
+            if DEFAULT_ALLOWED_TOOLS:
+                cmd.extend(['--allowedTools', DEFAULT_ALLOWED_TOOLS])
+            cmd.append(message)
+            
+            with open(output_file, 'w') as f:
+                process = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
+            
+            # Start background monitor (detached) - pass original directory
+            self._monitor_task(name, process.pid, output_file, original_cwd)
             
             print(json.dumps(asdict(TaskStatus("started", name, process.pid))))
             
@@ -149,7 +153,7 @@ class TaskManager:
         
         return 0
     
-    def _monitor_task(self, name: str, pid: int, output_file: Path) -> None:
+    def _monitor_task(self, name: str, pid: int, output_file: Path, original_cwd: str) -> None:
         """Monitor task completion in background"""
         monitor_script = CLAUDE_TASKS_DIR / "task_monitor.py"
         subprocess.Popen([
@@ -158,7 +162,7 @@ class TaskManager:
             name,
             str(pid),
             str(output_file),
-            "append"  # Signal to append to task file
+            original_cwd  # Pass original working directory
         ], start_new_session=True)
     
     def continue_task(self, name: str, message: str) -> int:
@@ -198,16 +202,20 @@ class TaskManager:
         output_file = TASKS_DIR / f"{name}_temp_resume_{timestamp}.json"
         
         try:
+            # Store current directory for monitor script
+            original_cwd = os.getcwd()
             os.chdir(project_dir)
+            
+            cmd = ['claude', '-p', '-r', session_id, '--output-format', 'json']
+            if DEFAULT_ALLOWED_TOOLS:
+                cmd.extend(['--allowedTools', DEFAULT_ALLOWED_TOOLS])
+            cmd.append(message)
+            
             with open(output_file, 'w') as f:
-                process = subprocess.Popen([
-                    'claude', '-p', '-r', session_id, '--output-format', 'json',
-                    '--allowedTools', DEFAULT_ALLOWED_TOOLS,
-                    message
-                ], stdout=f, stderr=subprocess.STDOUT)
+                process = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
             
             # Start background monitor
-            self._monitor_task(name, process.pid, output_file)
+            self._monitor_task(name, process.pid, output_file, original_cwd)
             
             print(json.dumps(asdict(TaskStatus("continued", name, process.pid))))
             
