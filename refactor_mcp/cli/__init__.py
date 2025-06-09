@@ -184,13 +184,16 @@ def show(
         result = engine.show_function(params)
         
         if result.success:
-            typer.echo(f"Extractable elements in '{function_name}':")
+            typer.echo(f"Function: {result.function_name}")
             if result.extractable_elements:
+                typer.echo(f"Found {len(result.extractable_elements)} extractable elements:")
                 for element in result.extractable_elements:
-                    typer.echo(f"  - {element.id} ({element.type}): {element.code[:50]}...")
+                    typer.echo(f"  - {element.id} ({element.type})")
+                    typer.echo(f"    Code: {element.code[:50]}...")
                     typer.echo(f"    Location: {element.location}")
+                    typer.echo(f"    Extractable: {element.extractable}")
             else:
-                typer.echo("  No extractable elements found")
+                typer.echo("No extractable elements found.")
         else:
             typer.echo(f"Failed to analyze function: {result.message or 'Unknown error'}", err=True)
             raise typer.Exit(1)
