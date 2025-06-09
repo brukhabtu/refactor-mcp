@@ -4,7 +4,6 @@ Edge case tests to demonstrate the boundaries of what works vs fails in extracti
 This test suite specifically tests the limits of the current Rope provider
 extraction implementation to document expected behaviors.
 """
-import pytest
 import tempfile
 import os
 from pathlib import Path
