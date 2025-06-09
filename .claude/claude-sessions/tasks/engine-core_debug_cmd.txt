@@ -1,1 +1,0 @@
-Command: claude -p Create the RefactoringEngine according to plan/architecture.md. Implement refactor_mcp/engine.py with provider registration, operation routing, and error handling. This is the central coordination point. --output-format json --allowedTools Task,Bash,Glob,Grep,LS,Read,Edit,MultiEdit,Write,NotebookRead,NotebookEdit,TodoRead,TodoWrite

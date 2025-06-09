@@ -1,8 +1,0 @@
-Command: claude -p Connect CLI commands to refactoring engine using TDD:
-1. Write failing test for 'analyze' command end-to-end
-2. Implement minimal command wiring to pass
-3. Write failing test for 'find' command  
-4. Implement find command wiring
-5. Write failing test for 'rename' command
-6. Implement rename command wiring
-7. Test CLI commands work with real files --output-format json --allowedTools Task,Bash,Glob,Grep,LS,Read,Edit,MultiEdit,Write,NotebookRead,NotebookEdit,TodoRead,TodoWrite

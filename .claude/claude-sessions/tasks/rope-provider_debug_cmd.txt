@@ -1,8 +1,0 @@
-Command: claude -p Implement working Rope provider using TDD:
-1. Write failing test for basic rope project setup
-2. Implement minimal rope integration to pass test
-3. Write failing test for symbol analysis
-4. Implement analyze_symbol() method  
-5. Write failing test for find_symbols()
-6. Implement find_symbols() method
-7. Ensure all rope provider tests pass --output-format json --allowedTools Task,Bash,Glob,Grep,LS,Read,Edit,MultiEdit,Write,NotebookRead,NotebookEdit,TodoRead,TodoWrite

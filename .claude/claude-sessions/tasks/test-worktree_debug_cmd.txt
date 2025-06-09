@@ -1,1 +1,0 @@
-Command: claude -p Create a simple test file called hello.py with a basic hello world function. Make sure to add proper docstrings and type hints. --output-format json --allowedTools Task,Bash,Glob,Grep,LS,Read,Edit,MultiEdit,Write,NotebookRead,NotebookEdit,TodoRead,TodoWrite

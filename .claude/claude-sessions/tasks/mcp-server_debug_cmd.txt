@@ -1,1 +1,0 @@
-Command: claude -p Begin MCP server implementation according to plan/mcp-interface.md. Create refactor_mcp/server/__init__.py and refactor_mcp/server/tools.py with the MCP tool definitions and basic server setup. --output-format json --allowedTools Task,Bash,Glob,Grep,LS,Read,Edit,MultiEdit,Write,NotebookRead,NotebookEdit,TodoRead,TodoWrite
