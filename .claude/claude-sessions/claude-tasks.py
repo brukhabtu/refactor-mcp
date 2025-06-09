@@ -337,6 +337,7 @@ class TaskManager:
                     status = "completed"
             else:
                 status = "active"
+
             
             tasks.append(TaskInfo(
                 name=name,
@@ -567,6 +568,7 @@ def main() -> int:
         print("  show <name>                                Show detailed Claude task info")
         print("  output <name>                              Show Claude task output with metadata")
         print("  remove <name>                              Remove a Claude task from tracking")
+
         print()
         print("Examples:")
         print('  claude-tasks start backend "Fix the login bug" /path/to/backend')
