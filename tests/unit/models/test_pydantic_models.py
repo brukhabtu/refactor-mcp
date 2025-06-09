@@ -26,15 +26,9 @@ from refactor_mcp.models import (
 )
 from tests.test_utils import (
     assert_valid_symbol_info,
-    assert_valid_element_info,
-    assert_successful_result,
-    assert_error_result,
-    assert_models_equal,
     create_symbol,
-    create_element,
     unit_test,
 )
-from tests.mocks.builders import MockResultBuilder
 
 
 @unit_test

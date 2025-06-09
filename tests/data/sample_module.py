@@ -10,8 +10,6 @@ This module contains various Python constructs to test:
 - Import statements
 """
 
-import os
-import sys
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 
