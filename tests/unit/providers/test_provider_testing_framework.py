@@ -20,7 +20,7 @@ from tests.mocks.provider_testing_framework import (
     ProviderComplianceValidator,
     ProviderPerformanceBenchmark,
     MockProviderFactory,
-    TestDataGenerator,
+    ProviderTestDataGenerator,
     ProviderTestReporter
 )
 
@@ -44,12 +44,13 @@ class TestProviderTestFramework:
         framework = ProviderTestFramework()
         mock_provider = Mock(spec=RefactoringProvider)
         mock_provider.name = "test_provider"
+        mock_provider.get_metadata.return_value = Mock(name="test_provider")
         
         # RED: register_provider method doesn't exist
         framework.register_provider(mock_provider)
         
         assert len(framework.providers) == 1
-        assert framework.providers[0] == mock_provider
+        assert framework.providers["test_provider"] == mock_provider
         assert framework.get_provider("test_provider") == mock_provider
     
     def test_framework_test_case_execution(self):
@@ -324,20 +325,20 @@ class TestMockProviderFactory:
         assert execution_time >= 0.1  # At least 100ms
 
 
-class TestTestDataGenerator:
+class TestProviderTestDataGenerator:
     """Test test data generation utilities."""
     
     def test_generator_initialization(self):
         """Test generator can be initialized."""
         # RED: Generator doesn't exist yet
-        generator = TestDataGenerator()
+        generator = ProviderTestDataGenerator()
         
         assert generator is not None
         assert hasattr(generator, 'data_templates')
     
     def test_generator_symbol_data(self):
         """Test generator can create symbol test data."""
-        generator = TestDataGenerator()
+        generator = ProviderTestDataGenerator()
         
         # RED: Methods don't exist yet
         symbols = generator.generate_symbols(
@@ -353,7 +354,7 @@ class TestTestDataGenerator:
     
     def test_generator_code_patterns(self):
         """Test generator can create code patterns for testing."""
-        generator = TestDataGenerator()
+        generator = ProviderTestDataGenerator()
         
         # RED: Methods don't exist yet
         patterns = generator.generate_code_patterns(
@@ -367,7 +368,7 @@ class TestTestDataGenerator:
     
     def test_generator_edge_cases(self):
         """Test generator can create edge case scenarios."""
-        generator = TestDataGenerator()
+        generator = ProviderTestDataGenerator()
         
         # RED: Methods don't exist yet
         edge_cases = generator.generate_edge_cases(
@@ -449,7 +450,7 @@ class TestProviderTestIntegration:
         framework = ProviderTestFramework()
         
         # 2. Generate test data
-        generator = TestDataGenerator()
+        generator = ProviderTestDataGenerator()
         test_data = generator.generate_complete_test_suite()
         
         # 3. Create mock provider

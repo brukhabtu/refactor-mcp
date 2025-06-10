@@ -16,7 +16,7 @@ from refactor_mcp.models import SymbolInfo
 from tests.mocks.providers import MockRopeProvider, MockTreeSitterProvider, FailingProvider, ConfigurableProvider
 from tests.mocks.provider_testing_framework import (
     ProviderTestFramework, ProviderTestBuilder, ProviderComplianceValidator,
-    ProviderPerformanceBenchmark, MockProviderFactory, TestDataGenerator
+    ProviderPerformanceBenchmark, MockProviderFactory, ProviderTestDataGenerator
 )
 
 
@@ -66,7 +66,7 @@ class TestMultiProviderIntegration:
     
     def test_cross_provider_consistency(self):
         """Test consistency across different providers."""
-        params = AnalyzeParams(symbol_name="test_symbol")
+        params = AnalyzeParams(symbol_name="get_user_info")
         
         # Both providers should handle the same operation
         rope_result = self.rope_provider.analyze_symbol(params)
@@ -122,7 +122,7 @@ class TestProviderTestingFrameworkIntegration:
     def test_complete_testing_workflow(self):
         """Test end-to-end testing workflow."""
         # 1. Generate test data
-        generator = TestDataGenerator()
+        generator = ProviderTestDataGenerator()
         test_data = generator.generate_complete_test_suite()
         
         # 2. Build test cases
@@ -530,7 +530,7 @@ class TestRealWorldIntegrationScenarios:
     def test_large_codebase_simulation(self):
         """Test provider performance with large codebase simulation."""
         # Generate large number of symbols
-        generator = TestDataGenerator()
+        generator = ProviderTestDataGenerator()
         symbols = generator.generate_symbols(count=1000, types=["function", "class", "variable"])
         
         # Create test cases for subset of symbols
