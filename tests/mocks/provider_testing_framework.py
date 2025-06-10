@@ -89,7 +89,8 @@ class ProviderTestFramework:
     
     def register_provider(self, provider: RefactoringProvider):
         """Register a provider for testing."""
-        self.providers[provider.name] = provider
+        provider_name = getattr(provider, 'name', provider.get_metadata().name)
+        self.providers[provider_name] = provider
     
     def get_provider(self, name: str) -> Optional[RefactoringProvider]:
         """Get a registered provider by name."""
@@ -555,7 +556,13 @@ class MockProviderFactory:
         if "analyze" in capabilities:
             provider.analyze_symbol.return_value = AnalysisResult(
                 success=True,
-                symbol_info=SymbolInfo(name="test", qualified_name="test.test", type="function"),
+                symbol_info=SymbolInfo(
+                    name="test", 
+                    qualified_name="test.test", 
+                    type="function",
+                    definition_location="test.py:1",
+                    scope="global"
+                ),
                 references=["test.py:1"],
                 reference_count=1
             )
@@ -633,7 +640,7 @@ class MockProviderFactory:
         return self.create_basic_provider(name)
 
 
-class TestDataGenerator:
+class ProviderTestDataGenerator:
     """Generates test data for provider testing."""
     
     def __init__(self):

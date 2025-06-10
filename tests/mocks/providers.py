@@ -25,6 +25,7 @@ from refactor_mcp.models import (
     ShowParams,
 )
 from refactor_mcp.providers.base import (
+    RefactoringProvider,
     ProviderMetadata,
     OperationCapability,
     ProviderHealthStatus,
@@ -414,7 +415,7 @@ class MockTreeSitterProvider:
     
     def analyze_symbol(self, params: AnalyzeParams) -> Union[AnalysisResult, ErrorResponse]:
         """Analyze symbol using Tree-sitter parsing."""
-        # Simplified implementation for testing
+        # Simplified implementation for testing - always succeeds for any symbol
         symbol_info = SymbolInfo(
             name=params.symbol_name,
             qualified_name=f"module.{params.symbol_name}",
@@ -571,6 +572,41 @@ class FailingProvider:
             ["Check function exists", "Verify file readable"]
         )
 
+    # Enhanced protocol methods
+    def get_metadata(self) -> ProviderMetadata:
+        """Get provider metadata"""
+        return ProviderMetadata(
+            name="failing_provider",
+            version="1.0.0",
+            description="Mock provider that always fails for testing error scenarios",
+            author="Test Suite",
+            supported_languages=self.supported_languages
+        )
+
+    def get_detailed_capabilities(self, language: str) -> Dict[str, List[OperationCapability]]:
+        """Get detailed capabilities (empty for failing provider)"""
+        return {"analysis": [], "refactoring": [], "discovery": []}
+
+    def health_check(self) -> ProviderHealthStatus:
+        """Health check (always unhealthy)"""
+        return ProviderHealthStatus(
+            status="unhealthy",
+            details={"error_type": self.error_type, "always_fails": True},
+            dependencies=[]
+        )
+
+    def validate_configuration(self) -> Dict[str, Any]:
+        """Validate configuration (always invalid)"""
+        return {"valid": False, "errors": ["Provider configured to always fail"]}
+
+    def get_priority(self, language: str) -> int:
+        """Get priority (always 0)"""
+        return 0
+
+    def is_compatible(self, protocol_version: str) -> bool:
+        """Check compatibility (always false)"""
+        return False
+
 
 class ConfigurableProvider:
     """
@@ -654,3 +690,44 @@ class ConfigurableProvider:
             params.function_name,
             create_error_response("not_configured", f"No response configured for '{params.function_name}'")
         )
+
+    # Enhanced protocol methods
+    def get_metadata(self) -> ProviderMetadata:
+        """Get provider metadata"""
+        return ProviderMetadata(
+            name=self.name,
+            version="1.0.0",
+            description="Configurable mock provider for flexible testing scenarios",
+            author="Test Suite",
+            supported_languages=self.supported_languages
+        )
+
+    def get_detailed_capabilities(self, language: str) -> Dict[str, List[OperationCapability]]:
+        """Get detailed capabilities"""
+        if not self.supports_language(language):
+            return {"analysis": [], "refactoring": [], "discovery": []}
+        return {
+            "analysis": [OperationCapability(name="analyze_symbol", support_level="full")],
+            "refactoring": [OperationCapability(name="rename_symbol", support_level="full")],
+            "discovery": [OperationCapability(name="find_symbols", support_level="full")]
+        }
+
+    def health_check(self) -> ProviderHealthStatus:
+        """Health check"""
+        return ProviderHealthStatus(
+            status="healthy",
+            details={"configured_responses": len(self._analyze_responses)},
+            dependencies=[]
+        )
+
+    def validate_configuration(self) -> Dict[str, Any]:
+        """Validate configuration"""
+        return {"valid": True, "configured_operations": len(self._analyze_responses)}
+
+    def get_priority(self, language: str) -> int:
+        """Get priority"""
+        return 75 if self.supports_language(language) else 0
+
+    def is_compatible(self, protocol_version: str) -> bool:
+        """Check compatibility"""
+        return protocol_version == "1.0.0"
